@@ -39,7 +39,7 @@ impl ImtrButtonBox{
                        let root_win = s.root().expect("root doesn't exist");
                        let root_win = root_win.downcast_ref::<Window>().unwrap();
                        let evt      = ImtrEventObject::new();
-                       evt.set_path(Path::new("/dev/shm"));
+                       evt.set_path(Path::new("/dev/shm/test.png"), Path::new("/dev/shm/test.png"),);
                        s.imp().mediator.borrow().as_ref().unwrap()
                            .emit_by_name::<()>("directory-selected", &[&evt]);
 

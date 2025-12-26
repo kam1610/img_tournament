@@ -25,6 +25,8 @@ use crate::imtr_mediator::ImtrMediator;
 use crate::month_img_list::get_month_img_files;
 use crate::imtr_preview::ImtrPreview;
 
+use crate::imtr_event_object::ImtrEventObject; // debug
+
 // load_css ////////////////////////////////////////////////
 pub fn load_css() {
     // Load the CSS file and add it to the provider
@@ -219,6 +221,10 @@ pub fn build_ui(app: &Application) {
     ////////////////////////////////////////////////////////
 
     let vbox = gtk::Box::builder().orientation(Orientation::Vertical).build();
+
+    let pwin = ImtrPreview::new();
+    vbox.append(&pwin);
+
     let btn_box = ImtrButtonBox::new();
     vbox.append(&btn_box);
 
@@ -234,6 +240,10 @@ pub fn build_ui(app: &Application) {
         .build();
 
     window.present();
+
+    let evt = ImtrEventObject::new();
+    evt.set_path(Path::new("/dev/shm/test.png"), Path::new("/dev/shm/test.png"));
+    pwin.emit_by_name::<()>("set-images", &[&evt]);
 
 
 
