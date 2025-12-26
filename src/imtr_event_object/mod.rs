@@ -20,6 +20,8 @@ impl ImtrEventObject{
     pub fn get_path(&self) -> (PathBuf, PathBuf){
         return (self.imp().path_a.borrow().clone().unwrap(),
                 self.imp().path_b.borrow().clone().unwrap()); }
-    pub fn set_path(&self, p: &Path){
-        *self.imp().path_a.borrow_mut() = Some(p.to_path_buf()); }
+    pub fn set_path(&self, pa: &Path, pb: &Path){
+        *self.imp().path_a.borrow_mut() = Some(pa.to_path_buf());
+        *self.imp().path_b.borrow_mut() = Some(pb.to_path_buf());
+    }
 }

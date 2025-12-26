@@ -2,6 +2,7 @@ use once_cell::sync::Lazy;
 use std::path::Path;
 use std::path::PathBuf;
 use std::cell::RefCell;
+use std::cell::Cell;
 
 use gtk::glib;
 use gtk::glib::Object;
@@ -12,8 +13,8 @@ use gtk::glib::subclass::Signal;
 use gtk::prelude::*;
 
 use crate::imtr_event_object::ImtrEventObject;
-
-enum Decision { Undef, Left, Right }
+pub enum DivState { N, H, V }
+pub enum Decision { Undef, Left, Right }
 // struct //////////////////////////////////////////////////
 pub struct ImtrPreview{
     pub(super) path_a       : Option<PathBuf>,
@@ -22,8 +23,8 @@ pub struct ImtrPreview{
     pub(super) path_b       : Option<PathBuf>,
     pub(super) pbuf_b       : RefCell<Option<Pixbuf>>,
     pub(super) scale_pbuf_b : RefCell<Option<Pixbuf>>,
-    pub(super) decision     : Decision
-
+    pub(super) decision     : Decision,
+    pub(super) divstate     : Cell<DivState>,
 }
 // subclass ////////////////////////////////////////////////
 #[glib::object_subclass]
@@ -56,6 +57,7 @@ impl Default         for ImtrPreview {
             pbuf_b       : RefCell::new(None),
             scale_pbuf_b : RefCell::new(None),
             decision     : Decision::Undef,
+            divstate     : Cell::new(DivState::N),
         }
     }
 }
