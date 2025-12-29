@@ -41,7 +41,6 @@ pub fn get_month_img_files(dir: &Path, y: i32, m: u32) -> std::io::Result<Vec<Pa
     let files            = list_files(dir)?;
     let filtered_by_data = filter_by_year_month(files, y, m);
     let filtered_files   = filter_by_extension(filtered_by_data);
-
     // debug
     for f in &filtered_files{ println!("{}", f.display()); }
 

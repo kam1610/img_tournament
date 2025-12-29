@@ -15,18 +15,19 @@ use gtk::glib::Object;
 // ImtrButtonBox ///////////////////////////////////////////
 #[derive(Debug)]
 pub struct ImtrButtonBox {
-    pub(super) dir_btn  : Button,
-    pub(super) dir_lbl  : Label,
-    pub(super) year_lbl : Label,
-    pub(super) mon_lbl  : Label,
-    pub(super) mon_btn  : SpinButton,
-    pub(super) gen_btn  : Button,
-    pub(super) prev_btn : Button,
-    pub(super) next_btn : Button,
-    pub(super) save_btn : Button,
-    pub(super) load_btn : Button,
-    pub(super) mediator : RefCell<Option<Object>>,
-    pub(super) dir      : RefCell<PathBuf>,
+    pub dir_btn  : Button,
+    pub dir_lbl  : Label,
+    pub year_lbl : Label,
+    pub year_btn : SpinButton,
+    pub mon_lbl  : Label,
+    pub mon_btn  : SpinButton,
+    pub gen_btn  : Button,
+    pub prev_btn : Button,
+    pub next_btn : Button,
+    pub save_btn : Button,
+    pub load_btn : Button,
+    pub mediator : RefCell<Option<Object>>,
+    pub dir      : RefCell<PathBuf>,
 }
 // GObject /////////////////////////////////////////////////
 #[gtk::glib::object_subclass]
@@ -48,21 +49,31 @@ impl WidgetImpl for ImtrButtonBox {}
 impl BoxImpl    for ImtrButtonBox {}
 impl Default    for ImtrButtonBox {
     fn default() -> Self{
-        let mod_adj = Adjustment::builder()
+        let mod_adj_m = Adjustment::builder()
             .lower(1.0).upper(12.0)
             .step_increment(1.0).page_increment(1.0)
             .value(1.0)
             .build();
-        let spin = SpinButton::builder()
-            .adjustment(&mod_adj)
+        let spin_m = SpinButton::builder()
+            .adjustment(&mod_adj_m)
             .digits(0).wrap(true).width_request(2).visible(true)
+            .build();
+        let mod_adj_y = Adjustment::builder()
+            .lower(1970.0).upper(9999.0)
+            .step_increment(1.0).page_increment(1.0)
+            .value(1.0)
+            .build();
+        let spin_y = SpinButton::builder()
+            .adjustment(&mod_adj_y)
+            .digits(0).wrap(true).width_request(4).visible(true)
             .build();
         Self{
             dir_btn  : Button::with_label("dir"),
             dir_lbl  : Label::builder().css_classes(vec!["dir_lbl"]).label("...").build(),
-            year_lbl : Label::new(Some("year:2024")),
+            year_lbl : Label::new(Some("year")),
+            year_btn : spin_y,
             mon_lbl  : Label::new(Some("mon:")),
-            mon_btn  : spin,
+            mon_btn  : spin_m,
             gen_btn  : Button::with_label("gen"),
             prev_btn : Button::with_label("prev"),
             next_btn : Button::with_label("next"),
