@@ -1,4 +1,6 @@
 use std::cell::RefCell;
+use std::cell::Cell;
+use std::path::PathBuf;
 use once_cell::sync::Lazy;
 
 use gtk::Button;
@@ -15,6 +17,7 @@ use gtk::glib::Object;
 pub struct ImtrButtonBox {
     pub(super) dir_btn  : Button,
     pub(super) dir_lbl  : Label,
+    pub(super) year_lbl : Label,
     pub(super) mon_lbl  : Label,
     pub(super) mon_btn  : SpinButton,
     pub(super) gen_btn  : Button,
@@ -23,6 +26,7 @@ pub struct ImtrButtonBox {
     pub(super) save_btn : Button,
     pub(super) load_btn : Button,
     pub(super) mediator : RefCell<Option<Object>>,
+    pub(super) dir      : RefCell<PathBuf>,
 }
 // GObject /////////////////////////////////////////////////
 #[gtk::glib::object_subclass]
@@ -54,9 +58,10 @@ impl Default    for ImtrButtonBox {
             .digits(0).wrap(true).width_request(2).visible(true)
             .build();
         Self{
-            dir_btn  : Button::new(),
-            dir_lbl  : Label::new(Some("dir_label")),
-            mon_lbl  : Label::new(Some("mon")),
+            dir_btn  : Button::with_label("dir"),
+            dir_lbl  : Label::builder().css_classes(vec!["dir_lbl"]).label("...").build(),
+            year_lbl : Label::new(Some("year:2024")),
+            mon_lbl  : Label::new(Some("mon:")),
             mon_btn  : spin,
             gen_btn  : Button::with_label("gen"),
             prev_btn : Button::with_label("prev"),
@@ -64,6 +69,7 @@ impl Default    for ImtrButtonBox {
             save_btn : Button::with_label("save"),
             load_btn : Button::with_label("load"),
             mediator : RefCell::new(None),
+            dir      : RefCell::new(PathBuf::new()),
         }
     }
 }

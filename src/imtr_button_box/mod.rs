@@ -15,6 +15,7 @@ use gtk::glib::clone;
 use gtk::glib::WeakRef;
 
 use crate::imtr_event_object::ImtrEventObject;
+use crate::get_month_img_files;
 ////////////////////////////////////////////////////////////
 glib::wrapper! {
     pub struct ImtrButtonBox(ObjectSubclass<imp::ImtrButtonBox>)
@@ -22,8 +23,6 @@ glib::wrapper! {
         @implements gtk::Accessible, gtk::Actionable, gtk::Buildable, gtk::ConstraintTarget;
 }
 impl ImtrButtonBox{
-    // label_update (for debug) ////////////////////////////
-    fn label_update(lbl: &Label){ lbl.set_text("newlabel"); }
     // set_mediator ////////////////////////////////////////
     pub fn set_mediator(&self, m: Option<Object>){ *self.imp().mediator.borrow_mut() = m; }
     // dir_btn_setup ///////////////////////////////////////
@@ -38,31 +37,48 @@ impl ImtrButtonBox{
                    @strong lbl => move |_b|{
                        let root_win = s.root().expect("root doesn't exist");
                        let root_win = root_win.downcast_ref::<Window>().unwrap();
-                       let evt      = ImtrEventObject::new();
-                       evt.set_path(Path::new("/dev/shm/test.png"), Path::new("/dev/shm/test.png"),);
-                       s.imp().mediator.borrow().as_ref().unwrap()
-                           .emit_by_name::<()>("directory-selected", &[&evt]);
 
-                       file_dialog.open(
+                       file_dialog.select_folder(
                            Some(root_win),
                            None::<&Cancellable>,
-                           clone!(@strong s, @strong lbl => move|_r|{
-                               // todo: notify mediator
-                               lbl.set_text("clicked");
+                           clone!(@strong s, @strong lbl => move|r|{
+                               let d = if let Ok(d) = r { d } else { return; };
+                               println!("selected dir is {:?}", d.path());
+                               lbl.set_text(d.path().unwrap().to_str().unwrap());
+                               *s.imp().dir.borrow_mut() = d.path().unwrap();
                            }));
                    }));
     }
     // gen_btn_setup ///////////////////////////////////////
     fn gen_btn_setup(&self){
         let btn = self.imp().gen_btn.clone();
+
+        let s = self.clone();
+        btn.connect_clicked(
+            clone!(@strong s => move|r|{
+                let lst = get_month_img_files(&s.imp().dir.borrow(),
+                                              s.imp().year_lbl.label().parse().unwrap(),
+                                              s.imp().mon_btn.value() as u32);
+
+            }));
+
+
+
+        // let evt = ImtrEventObject::new();
+        // evt.set_path(Path::new("/dev/shm/test.png"), Path::new("/dev/shm/test.png"),);
+        // s.imp().mediator.borrow().as_ref().unwrap()
+        //     .emit_by_name::<()>("directory-selected", &[&evt]);
+
+
     }
     // new /////////////////////////////////////////////////
     pub fn new() -> Self{
         let obj: ImtrButtonBox = Object::builder().build();
         obj.append(&obj.imp().dir_btn);
         obj.append(&obj.imp().dir_lbl);
-        Self::label_update(&obj.imp().dir_lbl);
         obj.dir_btn_setup();
+
+        obj.append(&obj.imp().year_lbl);
 
         obj.append(&obj.imp().mon_lbl);
         obj.append(&obj.imp().mon_btn);
