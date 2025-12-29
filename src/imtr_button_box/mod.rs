@@ -56,10 +56,9 @@ impl ImtrButtonBox{
         let s = self.clone();
         btn.connect_clicked(
             clone!(@strong s => move|r|{
-                let lst = get_month_img_files(&s.imp().dir.borrow(),
-                                              s.imp().year_lbl.label().parse().unwrap(),
-                                              s.imp().mon_btn.value() as u32);
-
+                s.imp().mediator.borrow().as_ref().unwrap()
+                    .emit_by_name::<()>("build-tournament",
+                                        &[&ImtrEventObject::new()]);
             }));
 
 
@@ -79,6 +78,7 @@ impl ImtrButtonBox{
         obj.dir_btn_setup();
 
         obj.append(&obj.imp().year_lbl);
+        obj.append(&obj.imp().year_btn);
 
         obj.append(&obj.imp().mon_lbl);
         obj.append(&obj.imp().mon_btn);
