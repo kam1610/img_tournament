@@ -58,6 +58,11 @@ impl ImtrMediator{
                     root = Some(insert(root.take(), p)); }
                 print_tree(&root.clone().unwrap(), 0);
 
+                let c = next_candidate(&root.clone().unwrap());
+                println!("next candidate {:?}", c);
+                // todo
+                // 最初の対戦を取り出したのち
+                // preview_panel にパスお設定する
 
             })
         );

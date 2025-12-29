@@ -10,11 +10,11 @@ enum Decision { Undef, Left, Right }
 // Node ////////////////////////////////////////////////////
 #[derive(Debug)]
 pub struct Node{
-    path  : Option<PathBuf>, // leaf->Some, branch->None
-    left  : Option<Rc<RefCell<Node>>>,
-    right : Option<Rc<RefCell<Node>>>,
-    depth : usize,
-    decision: Decision,
+    pub path  : Option<PathBuf>, // leaf->Some, branch->None
+    pub left  : Option<Rc<RefCell<Node>>>,
+    pub right : Option<Rc<RefCell<Node>>>,
+    pub depth : usize,
+    pub decision: Decision,
 }
 impl Node{
     fn to_serializable(&self) -> SerializableNode{
@@ -54,6 +54,59 @@ impl Node{
             usize::max(Self::depth(&self.left), Self::depth(&self.right)); }
     fn balance_factor(&self) -> isize {
         Self::depth(&self.left) as isize - Self::depth(&self.right) as isize }
+}
+// resolve_winner_leaf /////////////////////////////////////
+fn resolve_winner_leaf(node: &Rc<RefCell<Node>>) -> Option<PathBuf> {
+    let n = node.borrow();
+    match (&n.left, &n.right, &n.decision) {
+        // self is leaf
+        (      _,       _,               _) if n.path.is_some() => n.path.clone(),
+        // not selected yet
+        (      _,       _, Decision::Undef) => None,
+        // left is winner
+        (Some(l),       _, Decision::Left ) => resolve_winner_leaf(l),
+        // right is winner
+        (      _, Some(r), Decision::Right) => resolve_winner_leaf(r),
+        // unexpected case
+        _ => None,
+    }
+}
+// next candidate //////////////////////////////////////////
+fn find_next_undef_node(
+    node: &Rc<RefCell<Node>>,
+) -> Option<(usize, Rc<RefCell<Node>>)> {
+    let n = node.borrow();
+
+    let left  = n.left.as_ref().and_then(|l| find_next_undef_node(l));
+    let right = n.right.as_ref().and_then(|r| find_next_undef_node(r));
+
+    let self_node = if (n.decision == Decision::Undef) && (n.path.is_none()){
+        Some((n.depth, Rc::clone(node))) }
+    else {
+        None };
+
+    [self_node, left, right]
+        .into_iter()
+        .flatten()
+        .min_by_key(|(d, _)| *d)
+}
+#[derive(Debug)]
+pub struct NextCandidate {
+    node: Rc<RefCell<Node>>,
+    winner_leaf_l: Option<PathBuf>,
+    winner_leaf_r: Option<PathBuf>,
+}
+pub fn next_candidate(root: &Rc<RefCell<Node>>) -> Option<NextCandidate> {
+    let (_, node) = find_next_undef_node(root)?; // node: Rc<RefCell<Node>>
+
+    let winner_l = resolve_winner_leaf( &node.borrow().left.clone().unwrap() );
+    let winner_r = resolve_winner_leaf( &node.borrow().right.clone().unwrap());
+
+    Some(NextCandidate {
+        node,
+        winner_leaf_l: winner_l,
+        winner_leaf_r: winner_r,
+    })
 }
 // rotate //////////////////////////////////////////////////
 fn rotate_right(n: Rc<RefCell<Node>>) -> Rc<RefCell<Node>> {
