@@ -2,11 +2,12 @@ use serde::{Serialize, Deserialize};
 use std::path::Path;
 use std::path::PathBuf;
 use std::rc::Rc;
+use std::cell::Cell;
 use std::cell::RefCell;
 
 // Decision //////////////////////////////////////////////////
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-enum Decision { Undef, Left, Right }
+pub enum Decision { Undef, Left, Right }
 // Node ////////////////////////////////////////////////////
 #[derive(Debug)]
 pub struct Node{
@@ -14,9 +15,10 @@ pub struct Node{
     pub left  : Option<Rc<RefCell<Node>>>,
     pub right : Option<Rc<RefCell<Node>>>,
     pub depth : usize,
-    pub decision: Decision,
+    pub decision: Cell<Decision>,
 }
 impl Node{
+    pub fn set_decision(&self, d: Decision){ self.decision.set(d); }
     fn to_serializable(&self) -> SerializableNode{
         SerializableNode{
             path  : self.path.clone(),
@@ -25,7 +27,7 @@ impl Node{
             right : self.right.as_ref().
                 map(|l| Box::new(l.borrow().to_serializable())),
             depth : self.depth,
-            decision: self.decision,
+            decision: Cell::new(self.decision.get()),
         }
     }
     fn new_leaf(path: PathBuf) -> Self{
@@ -34,7 +36,7 @@ impl Node{
             left  : None,
             right : None,
             depth : 1,
-            decision: Decision::Undef
+            decision: Cell::new(Decision::Undef),
         }
     }
     fn new_branch(left: Rc<RefCell<Node>>, right: Rc<RefCell<Node>>) -> Self{
@@ -44,7 +46,7 @@ impl Node{
             right : Some(right.clone()),
             depth : 1 +
                 usize::max(Self::depth(&Some(left)), Self::depth(&Some(right))),
-            decision: Decision::Undef
+            decision: Cell::new(Decision::Undef),
         }
     }
     fn depth(node: &Option<Rc<RefCell<Node>>>) -> usize{
@@ -58,7 +60,7 @@ impl Node{
 // resolve_winner_leaf /////////////////////////////////////
 fn resolve_winner_leaf(node: &Rc<RefCell<Node>>) -> Option<PathBuf> {
     let n = node.borrow();
-    match (&n.left, &n.right, &n.decision) {
+    match (&n.left, &n.right, &n.decision.get()) {
         // self is leaf
         (      _,       _,               _) if n.path.is_some() => n.path.clone(),
         // not selected yet
@@ -80,7 +82,7 @@ fn find_next_undef_node(
     let left  = n.left.as_ref().and_then(|l| find_next_undef_node(l));
     let right = n.right.as_ref().and_then(|r| find_next_undef_node(r));
 
-    let self_node = if (n.decision == Decision::Undef) && (n.path.is_none()){
+    let self_node = if (n.decision.get() == Decision::Undef) && (n.path.is_none()){
         Some((n.depth, Rc::clone(node))) }
     else {
         None };
@@ -202,7 +204,7 @@ struct SerializableNode{
     left : Option<Box<SerializableNode>>,
     right: Option<Box<SerializableNode>>,
     depth: usize,
-    decision: Decision,
+    decision: Cell<Decision>,
 }
 impl SerializableNode {
     fn to_node(&self) -> Rc<RefCell<Node>>{
@@ -211,7 +213,7 @@ impl SerializableNode {
             left : self.left.as_ref().map(|l| l.to_node()),
             right: self.right.as_ref().map(|l| l.to_node()),
             depth: self.depth,
-            decision: self.decision,
+            decision: self.decision.clone(),
         }));
         return node;
     }
