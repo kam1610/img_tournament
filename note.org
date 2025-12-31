@@ -1,16 +1,16 @@
 
 * 操作/動作
 
-  1. [ ] dir
+  1. [X] dir
      - ダイアログ表示
      - 選択中dir用のラベルテキスト更新
-     - genをenable
+     - <保留> genをenable
 
-  2. [ ] month
+  2. [X] month
      - 変更時の動作はとくになし(デフォルトコントロールで十分)
 
-  3. [ ] gen
-     - [ ] mediatorに通知
+  3. [-] gen
+     - [X] mediatorに通知 -> build-tournament
      - [ ] mediator
        - [ ] dirとmonthに応じて候補を生成
        - [ ] 対戦ツリーを生成
@@ -38,4 +38,4 @@
      - [ ] 分割方向に応じて選択された側に枠を表示
 
   10. double-click panel
-     - [ ] 選択とnext相当
+      - [ ] 選択とnext相当

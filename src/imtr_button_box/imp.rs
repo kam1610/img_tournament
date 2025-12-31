@@ -66,6 +66,7 @@ impl Default    for ImtrButtonBox {
         let spin_y = SpinButton::builder()
             .adjustment(&mod_adj_y)
             .digits(0).wrap(true).width_request(4).visible(true)
+            .value(2025.0)
             .build();
         Self{
             dir_btn  : Button::with_label("dir"),
