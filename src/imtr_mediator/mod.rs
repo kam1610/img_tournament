@@ -55,7 +55,7 @@ impl ImtrMediator{
 
                 let mut root: Option<Rc<RefCell<Node>>> = None;
                 for p in lst{
-                    root = Some(insert(root.take(), p)); }
+                    root = Some(insert(root.take(), p)); } // build tree
                 print_tree(&root.clone().unwrap(), 0);
 
                 let c = next_candidate(&root.clone().unwrap());

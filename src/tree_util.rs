@@ -19,6 +19,22 @@ pub struct Node{
 }
 impl Node{
     pub fn set_decision(&self, d: Decision){ self.decision.set(d); }
+    pub fn get_match_up_list(n: Rc<RefCell<Node>>) -> Vec<Rc<RefCell<Node>>>{
+        let mut v = vec![];
+        // left
+        let l = n.borrow().left.clone();
+        if (l.is_some()) && (l.clone().unwrap().borrow().path.is_none()) {
+            v.extend( Self::get_match_up_list(l.expect("left node")) ); }
+        // right
+        let r = n.borrow().right.clone();
+        if (r.is_some()) && (r.clone().unwrap().borrow().path.is_none()) {
+            v.extend( Self::get_match_up_list(r.expect("right node")) ); }
+        // self
+        if n.borrow().path.is_none(){ v.push(n); }
+
+        // 結果をリターン
+        return v;
+    }
     fn to_serializable(&self) -> SerializableNode{
         SerializableNode{
             path  : self.path.clone(),
