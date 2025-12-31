@@ -34,6 +34,8 @@ impl Node{
         if n.borrow().path.is_none(){ v.push(n); }
 
         // todo: sort min depth -> max depth
+        v.sort_by(|a, b| a.borrow().depth.cmp(&b.borrow().depth)  );
+
         return v;
     }
     fn to_serializable(&self) -> SerializableNode{
