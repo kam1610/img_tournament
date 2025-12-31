@@ -54,12 +54,21 @@ impl ImtrMediator{
                 }
 
                 let mut root: Option<Rc<RefCell<Node>>> = None;
+                let mut opt = 1;
                 for p in lst{
-                    root = Some(insert(root.take(), p)); } // build tree
+                    root = Some(insert(root.take(), p, opt)); opt+= 1; } // build tree
                 print_tree(&root.clone().unwrap(), 0);
 
-                let c = next_candidate(&root.clone().unwrap());
-                println!("next candidate {:?}", c);
+                let matchlist = Node::get_match_up_list( root.expect("root node") );
+                //println!("matchlist= {:?}", matchlist);
+
+                for m in matchlist.iter(){
+                    println!("opt: {}, h: {}, path: {:?}",
+                             m.borrow().opt, m.borrow().depth, m.borrow().path);
+                }
+
+                // let c = next_candidate(&root.clone().unwrap());
+                // println!("next candidate {:?}", c);
                 // todo
                 // 最初の対戦を取り出したのち
                 // preview_panel にパスお設定する
