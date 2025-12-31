@@ -16,6 +16,7 @@ pub struct Node{
     pub right : Option<Rc<RefCell<Node>>>,
     pub depth : usize,
     pub decision: Cell<Decision>,
+    pub opt   : isize,
 }
 impl Node{
     pub fn set_decision(&self, d: Decision){ self.decision.set(d); }
@@ -32,7 +33,7 @@ impl Node{
         // self
         if n.borrow().path.is_none(){ v.push(n); }
 
-        // 結果をリターン
+        // todo: sort min depth -> max depth
         return v;
     }
     fn to_serializable(&self) -> SerializableNode{
@@ -44,25 +45,17 @@ impl Node{
                 map(|l| Box::new(l.borrow().to_serializable())),
             depth : self.depth,
             decision: Cell::new(self.decision.get()),
+            opt : self.opt,
         }
     }
-    fn new_leaf(path: PathBuf) -> Self{
+    fn new_leaf(path: PathBuf, opt: isize) -> Self{
         Self{
             path  : Some(path),
             left  : None,
             right : None,
             depth : 1,
             decision: Cell::new(Decision::Undef),
-        }
-    }
-    fn new_branch(left: Rc<RefCell<Node>>, right: Rc<RefCell<Node>>) -> Self{
-        Self{
-            path  : None,
-            left  : Some(left.clone()),
-            right : Some(right.clone()),
-            depth : 1 +
-                usize::max(Self::depth(&Some(left)), Self::depth(&Some(right))),
-            decision: Cell::new(Decision::Undef),
+            opt   : opt
         }
     }
     fn depth(node: &Option<Rc<RefCell<Node>>>) -> usize{
@@ -151,9 +144,9 @@ fn rotate_left(n: Rc<RefCell<Node>>) -> Rc<RefCell<Node>> {
 
     return r;
 }
-pub fn insert(node: Option<Rc<RefCell<Node>>>, path: PathBuf) -> Rc<RefCell<Node>>{
+pub fn insert(node: Option<Rc<RefCell<Node>>>, path: PathBuf, opt: isize) -> Rc<RefCell<Node>>{
     if node.is_none(){
-        return Rc::new(RefCell::new(Node::new_leaf(path))); }
+        return Rc::new(RefCell::new(Node::new_leaf(path, opt))); }
 
     let node_rc = node.unwrap();
 
@@ -161,8 +154,8 @@ pub fn insert(node: Option<Rc<RefCell<Node>>>, path: PathBuf) -> Rc<RefCell<Node
     let mut n = n.borrow_mut();
 
     if n.path.is_some(){ // leaf -> convert brach and add leaf
-        let cur_leaf = Rc::new(RefCell::new(Node::new_leaf(n.path.take().unwrap())));
-        let new_leaf = Rc::new(RefCell::new(Node::new_leaf(path)));
+        let cur_leaf = Rc::new(RefCell::new(Node::new_leaf(n.path.take().unwrap(), n.opt)));
+        let new_leaf = Rc::new(RefCell::new(Node::new_leaf(path, opt)));
         n.left  = Some(cur_leaf);
         n.right = Some(new_leaf);
         n.update_depth();
@@ -170,9 +163,9 @@ pub fn insert(node: Option<Rc<RefCell<Node>>>, path: PathBuf) -> Rc<RefCell<Node
     }
 
     if Node::depth(&n.left) <= Node::depth(&n.right) {
-        n.left  = Some(insert(n.left.take(), path));
+        n.left  = Some(insert(n.left.take(), path, opt));
     } else {
-        n.right = Some(insert(n.right.take(), path));
+        n.right = Some(insert(n.right.take(), path, opt));
     }
     n.update_depth();
 
@@ -202,9 +195,9 @@ pub fn print_tree(node: &Rc<RefCell<Node>>, depth: usize){
     let indent = "  ".repeat(depth);
     let n = node.borrow();
     if let Some(path) = &n.path{
-        println!("{}Leaf: {}", indent, path.display());
+        println!("{}Leaf: opt={}, {}", indent, n.opt, path.display());
     } else {
-        println!("{}Node (h={}, balance={})", indent, n.depth, n.balance_factor());
+        println!("{}Node (opt={}, h={}, balance={})", indent, n.opt, n.depth, n.balance_factor());
         if let Some(left) = &n.left {
             print_tree(left, depth + 1);
         }
@@ -221,6 +214,7 @@ struct SerializableNode{
     right: Option<Box<SerializableNode>>,
     depth: usize,
     decision: Cell<Decision>,
+    opt : isize,
 }
 impl SerializableNode {
     fn to_node(&self) -> Rc<RefCell<Node>>{
@@ -230,6 +224,7 @@ impl SerializableNode {
             right: self.right.as_ref().map(|l| l.to_node()),
             depth: self.depth,
             decision: self.decision.clone(),
+            opt : self.opt,
         }));
         return node;
     }
