@@ -2,6 +2,7 @@ mod imp;
 
 use std::rc::Rc;
 use std::cell::RefCell;
+use std::path::PathBuf;
 
 use gtk::prelude::*;
 use gtk::subclass::prelude::ObjectSubclassIsExt;
@@ -14,6 +15,7 @@ use gtk::Window;
 use crate::imtr_event_object::ImtrEventObject;
 use crate::imtr_button_box::ImtrButtonBox;
 use crate::month_img_list::get_month_img_files;
+use crate::imtr_preview::ImtrPreview;
 use crate::tree_util::*;
 // wrapper /////////////////////////////////////////////////
 glib::wrapper! {
@@ -59,19 +61,36 @@ impl ImtrMediator{
                     root = Some(insert(root.take(), p, opt)); opt+= 1; } // build tree
                 print_tree(&root.clone().unwrap(), 0);
 
-                let matchlist = Node::get_match_up_list( root.expect("root node") );
-                //println!("matchlist= {:?}", matchlist);
+                let match_list = Node::get_match_up_list( root.expect("root node") );
 
-                for m in matchlist.iter(){
+                for m in match_list.iter(){
                     println!("opt: {}, h: {}, path: {:?}",
                              m.borrow().opt, m.borrow().depth, m.borrow().path);
                 }
 
-                // let c = next_candidate(&root.clone().unwrap());
-                // println!("next candidate {:?}", c);
-                // todo
-                // 最初の対戦を取り出したのち
-                // preview_panel にパスお設定する
+                *s.imp().match_list.borrow_mut() = match_list;
+                s.imp().match_num.set(0);
+
+                let c = s.imp().match_list.borrow()[0].clone();
+                let c = c.borrow();
+                let evt = ImtrEventObject::new();
+                let pa: Option<PathBuf> =
+                    if c.left.is_some() &&  c.left.as_ref().unwrap().borrow().path.is_some(){
+                        (&c. left.as_ref().unwrap().borrow().path).clone()
+                    } else {
+                        None
+                    };
+                let pb: Option<PathBuf> =
+                    if c.right.is_some() &&  c.right.as_ref().unwrap().borrow().path.is_some(){
+                        (&c. right.as_ref().unwrap().borrow().path).clone()
+                    } else {
+                        None
+                    };
+                evt.set_path(pa, pb);
+                s.imp().pwin.borrow().clone()
+                    .downcast::<ImtrPreview>()
+                    .expect("(ImtrMediator::build-tournament) imtr_preview is pected")
+                    .emit_by_name::<()>("set-images", &[&evt]);
 
             })
         );
