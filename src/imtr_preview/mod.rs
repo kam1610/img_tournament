@@ -2,6 +2,8 @@ mod imp;
 
 use std::path::Path;
 use std::path::PathBuf;
+use std::cell::RefCell;
+use std::cell::Cell;
 
 use gtk::prelude::*;
 use gtk::DrawingArea;
@@ -128,42 +130,32 @@ impl ImtrPreview{
         self.queue_draw();
     }
     // draw_func ///////////////////////////////////////////
-    fn draw_func(da: &DrawingArea, cr: &cairo::Context, w: i32, h: i32){
-        let pwin = da.clone().downcast::<ImtrPreview>().expect("imtr_preview");
-        if pwin.imp().scale_pbuf_a.borrow().is_some() {
-            // a
-            let scale_pbuf = &*pwin.imp().scale_pbuf_a.borrow();
+    fn draw_func_sub(&self, cr: &cairo::Context, spbuf: RefCell<Option<Pixbuf>>, sf: &RefCell<ScaleFactor>, ofst: bool){
+        if spbuf.borrow().is_some() {
+            let p = spbuf.borrow();
             let scale_crop_pixbuf = {
-                if let Some(ref p) = scale_pbuf { p.clone() }
-                else { return; }};
-            cr.set_source_pixbuf(&scale_crop_pixbuf,
-                                 pwin.imp().scale_fact_a.borrow().ofst_x as f64,
-                                 pwin.imp().scale_fact_a.borrow().ofst_y as f64);
-            cr.rectangle(0.0, 0.0,
-                         pwin.width() as f64, pwin.height() as f64);
-            if cr.fill().is_err(){
-                println!("draw image on PreviewWindow failed!");
-            }
-            // b
-            let scale_pbuf = &*pwin.imp().scale_pbuf_b.borrow();
-            let scale_crop_pixbuf = {
-                if let Some(ref p) = scale_pbuf { p.clone() }
+                if let Some(ref p) = p.as_ref() { p.clone() }
                 else { return; }};
 
             let mut x = 0.0; let mut y = 0.0;
-            if pwin.imp().divstate.get() == DivState::H { y = pwin.height() as f64 / 2.0; }
-            if pwin.imp().divstate.get() == DivState::V { x = pwin.width()  as f64 / 2.0; }
+            if ofst {
+                if self.imp().divstate.get() == DivState::H { y = self.height() as f64 / 2.0; }
+                if self.imp().divstate.get() == DivState::V { x = self.width()  as f64 / 2.0; }
+            }
 
             cr.set_source_pixbuf(&scale_crop_pixbuf,
-                                 pwin.imp().scale_fact_b.borrow().ofst_x as f64 + x,
-                                 pwin.imp().scale_fact_b.borrow().ofst_y as f64 + y);
-
-            cr.rectangle(x, y, pwin.width() as f64, pwin.height() as f64);
+                                 sf.borrow().ofst_x as f64 + x,
+                                 sf.borrow().ofst_y as f64 + y);
+            cr.rectangle(0.0, 0.0,
+                         self.width() as f64, self.height() as f64);
             if cr.fill().is_err(){
-                println!("draw image on PreviewWindow failed!");
-            }
+                println!("draw image on PreviewWindow failed!"); }
         }
-        println!("draw_func finished");
+    }
+    fn draw_func(da: &DrawingArea, cr: &cairo::Context, w: i32, h: i32){
+        let pwin = da.clone().downcast::<ImtrPreview>().expect("imtr_preview");
+        pwin.draw_func_sub(cr, pwin.imp().scale_pbuf_a.clone(), &pwin.imp().scale_fact_a, false);
+        pwin.draw_func_sub(cr, pwin.imp().scale_pbuf_b.clone(), &pwin.imp().scale_fact_b, true );
     }
     // new /////////////////////////////////////////////////
     pub fn new() -> Self{
