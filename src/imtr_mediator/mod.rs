@@ -11,6 +11,10 @@ use gtk::glib::object::Object;
 use gtk::glib::closure_local;
 use gtk::AlertDialog;
 use gtk::Window;
+use gtk::Orientation;
+use gtk::Label;
+use gtk::Button;
+use gtk::glib::clone;
 
 use crate::imtr_event_object::ImtrEventObject;
 use crate::imtr_button_box::ImtrButtonBox;
@@ -137,10 +141,36 @@ impl ImtrMediator{
 
                 // winner
                 let p = pwin.get_path(dec);
-                let alert = AlertDialog::builder()
-                    .modal(true)
-                    .message( format!("the winner is {:?}", p.unwrap()) )
-                    .build().show(Some(&win));
+
+                let win = Window::builder().title( String::from("The winner has been selected") )
+                    .modal(true).build();
+                let vbox          = gtk::Box::builder().orientation(Orientation::Vertical).build();
+                let label_1       = Label::new(Some( &format!("the winner is {:?}", p.clone().unwrap() ) ));
+                let label_2       = Label::new(Some("copy the path to the clipboar?"));
+                let button_box    = gtk::Box::builder().orientation(Orientation::Horizontal).build();
+                let ok_button     = Button::with_label("OK");
+                let cancel_button = Button::with_label("Cancel");
+
+                ok_button.connect_clicked(
+                    clone!(@strong win, @strong p => move|_b|{
+                        let dp     = gtk::gdk::Display::default().unwrap();
+                        let cb     = dp.clipboard();
+                        let p      = p.as_ref().unwrap();
+                        cb.set_text(&p.to_str().unwrap());
+                        win.close(); }));
+
+                cancel_button.connect_clicked(
+                    clone!(@strong win => move|_b|{ win.close(); }));
+
+                button_box.append(&ok_button);
+                button_box.append(&cancel_button);
+
+                vbox.append(&label_1);
+                vbox.append(&label_2);
+                vbox.append(&button_box);
+
+                win.set_child(Some(&vbox));
+                win.present();
                 return;
 
             })
