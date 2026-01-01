@@ -142,7 +142,7 @@ impl ImtrMediator{
                 // winner
                 let p = pwin.get_path(dec);
 
-                let win = Window::builder().title( String::from("The winner has been selected") )
+                let winner_win = Window::builder().title( String::from("The winner has been selected") )
                     .modal(true).build();
                 let vbox          = gtk::Box::builder().orientation(Orientation::Vertical).build();
                 let label_1       = Label::new(Some( &format!("the winner is {:?}", p.clone().unwrap() ) ));
@@ -152,15 +152,15 @@ impl ImtrMediator{
                 let cancel_button = Button::with_label("Cancel");
 
                 ok_button.connect_clicked(
-                    clone!(@strong win, @strong p => move|_b|{
+                    clone!(@strong winner_win, @strong p => move|_b|{
                         let dp     = gtk::gdk::Display::default().unwrap();
                         let cb     = dp.clipboard();
                         let p      = p.as_ref().unwrap();
                         cb.set_text(&p.to_str().unwrap());
-                        win.close(); }));
+                        winner_win.close(); }));
 
                 cancel_button.connect_clicked(
-                    clone!(@strong win => move|_b|{ win.close(); }));
+                    clone!(@strong winner_win => move|_b|{ winner_win.close(); }));
 
                 button_box.append(&ok_button);
                 button_box.append(&cancel_button);
@@ -169,12 +169,42 @@ impl ImtrMediator{
                 vbox.append(&label_2);
                 vbox.append(&button_box);
 
-                win.set_child(Some(&vbox));
-                win.present();
+                winner_win.set_child(Some(&vbox));
+                winner_win.present();
                 return;
 
             })
         );
+        // prev-match //////////////////////////////////////
+        obj.connect_closure(
+            "prev-match",
+            false,
+            closure_local!(|s: Self, e: ImtrEventObject|{
+                let pwin_temp = s.imp().pwin.borrow();
+                let pwin = pwin_temp.downcast_ref::<ImtrPreview>()
+                    .expect("ImtrPreview is expected");
+                let ix  = s.imp().match_num.get();
+                let win = s.imp().win.borrow().clone()
+                    .downcast::<Window>().expect("Window");
+
+                if 0 < ix{
+                    let n_temp = s.imp().match_list.borrow();
+                    let n = n_temp[ix-1].borrow();
+
+                    s.imp().match_num.set(ix-1);
+
+                    let path_l = resolve_winner_leaf(&n.left.as_ref().unwrap() );
+                    let path_r = resolve_winner_leaf(&n.right.as_ref().unwrap());
+
+                    let evt = ImtrEventObject::new();
+                    evt.set_path(path_l, path_r);
+                    s.imp().pwin.borrow().clone()
+                        .downcast::<ImtrPreview>()
+                        .expect("imtr_preview is expected")
+                        .emit_by_name::<()>("set-images", &[&evt]);
+                    return;
+                }
+            }));
         return obj;
     }
 }

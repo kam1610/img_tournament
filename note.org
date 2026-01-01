@@ -20,10 +20,10 @@
 
   5. [X] DEBUG: Right側のアスペクトが意図と異なる 2023/4
 
-  6. [ ] next
+  6. [X] next
      - mediator
        - [X] imp に "next-match"の宣言
-       - [-] mod に "next-match"のルーチン
+       - [X] mod に "next-match"のルーチン
          - [X] PreviewWindowの選択がなければなにもしない(アラートなんかだす)
 
          - [X] 選択結果をPreviewWindowから取得してNodeに保存
@@ -32,9 +32,9 @@
            - [X] いっこすすめる
            - [X] 左右について，存在すれば resolve_winner_leaf でPathBuf 取得
                  なければ None を設定して PreviewWin に set-image を発行
-         - [ ] ラスト
+         - [X] ラスト
 
-     - [ ] button
+     - [X] button
        - clickedイベント
 
   7. [ ] prev

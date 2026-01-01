@@ -57,6 +57,9 @@ impl ObjectImpl for ImtrMediator{
                 Signal::builder("next-match")
                     .param_types([ImtrEventObject::static_type()])
                     .build(),
+                Signal::builder("prev-match")
+                    .param_types([ImtrEventObject::static_type()])
+                    .build(),
             ]
         });
         return SIGNALS.as_ref();

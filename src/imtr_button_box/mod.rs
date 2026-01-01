@@ -60,6 +60,17 @@ impl ImtrButtonBox{
                                         &[&ImtrEventObject::new()]);
             }));
     }
+    // prev_btn_setup //////////////////////////////////////
+    fn prev_btn_setup(&self){
+        let btn = self.imp().prev_btn.clone();
+        let s   = self.clone();
+        btn.connect_clicked(
+            clone!(@strong s => move|r|{
+                s.imp().mediator.borrow().as_ref().unwrap()
+                    .emit_by_name::<()>("prev-match",
+                                        &[&ImtrEventObject::new()]);
+            }));
+    }
     // gen_btn_setup ///////////////////////////////////////
     fn gen_btn_setup(&self){
         let btn = self.imp().gen_btn.clone();
@@ -90,7 +101,9 @@ impl ImtrButtonBox{
         obj.next_btn_setup();
         obj.append(&obj.imp().next_btn);
 
+        obj.prev_btn_setup();
         obj.append(&obj.imp().prev_btn);
+
         obj.append(&obj.imp().save_btn);
         obj.append(&obj.imp().load_btn);
 
