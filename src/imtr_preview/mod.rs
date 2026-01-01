@@ -39,34 +39,32 @@ impl ImtrPreview{
             Some(p) } else { None };
     }
     // prepare_scale_buf ///////////////////////////////////
+    fn prepare_scale_buf_sub(&self,
+                             pbuf      : RefCell<Option<Pixbuf>>,
+                             scale_pbuf: RefCell<Option<Pixbuf>>,
+                             scale_fact: RefCell<ScaleFactor>){
+
+        let pbuf_temp_opt   = pbuf.borrow();
+        let pbuf_temp       = pbuf_temp_opt.as_ref().unwrap();
+        let scale_fact_temp = ScaleFactor::get_scale_offset(pbuf_temp.width(), pbuf_temp.height(),
+                                                            self.width(), self.height() );
+        let scale_pbuf_temp = pbuf_temp.scale_simple(scale_fact_temp.dst_w, scale_fact_temp.dst_h,
+                                                     InterpType::Bilinear).unwrap();
+
+        *scale_fact.borrow_mut() = scale_fact_temp;
+        *scale_pbuf.borrow_mut()  = Some(scale_pbuf_temp);
+        self.imp().divstate.set(DivState::N);
+    }
     fn prepare_scale_buf(&self){
         if self.imp().pbuf_a.borrow().is_some() && self.imp().pbuf_b.borrow().is_none() { // onlyA
-            let pbuf_a_opt = self.imp().pbuf_a.borrow();
-            let pbuf_a     = pbuf_a_opt.as_ref().unwrap();
-
-            let result_a = ScaleFactor::get_scale_offset(pbuf_a.width(), pbuf_a.height(),
-                                                         self.width(), self.height() );
-            let scale_buf_a = pbuf_a.scale_simple(result_a.dst_w, result_a.dst_h,
-                                                  InterpType::Bilinear).unwrap();
-            *self.imp().scale_fact_a.borrow_mut() = result_a;
-            *self.imp().pbuf_a.borrow_mut() = Some(scale_buf_a);
-
-            self.imp().divstate.set(DivState::N);
+            self.prepare_scale_buf_sub(self.imp().pbuf_a.clone(),
+                                       self.imp().scale_pbuf_a.clone(),
+                                       self.imp().scale_fact_a.clone());
         } else if self.imp().pbuf_a.borrow().is_none() && self.imp().pbuf_b.borrow().is_some() { // onlyB
-
-            let pbuf_b_opt = self.imp().pbuf_b.borrow();
-            let pbuf_b     = pbuf_b_opt.as_ref().unwrap();
-
-            let result_b = ScaleFactor::get_scale_offset(pbuf_b.width(), pbuf_b.height(),
-                                                         self.width(), self.height() );
-            let scale_buf_b = pbuf_b.scale_simple(result_b.dst_w, result_b.dst_h,
-                                                  InterpType::Bilinear).unwrap();
-
-            *self.imp().scale_fact_b.borrow_mut() = result_b;
-            *self.imp().pbuf_b.borrow_mut() = Some(scale_buf_b);
-
-            self.imp().divstate.set(DivState::N);
-        } if self.imp().pbuf_a.borrow().is_none() && self.imp().pbuf_b.borrow().is_none(){ //noneBoth
+            self.prepare_scale_buf_sub(self.imp().pbuf_b.clone(),
+                                       self.imp().scale_pbuf_b.clone(),
+                                       self.imp().scale_fact_b.clone());
+        } else if self.imp().pbuf_a.borrow().is_none() && self.imp().pbuf_b.borrow().is_none(){ //noneBoth
             self.imp().divstate.set(DivState::N);
         } else { // both exist
             let scale_buf_a;
