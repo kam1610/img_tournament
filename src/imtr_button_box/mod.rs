@@ -49,26 +49,27 @@ impl ImtrButtonBox{
                            }));
                    }));
     }
+    // next_btn_setup //////////////////////////////////////
+    fn next_btn_setup(&self){
+        let btn = self.imp().next_btn.clone();
+        let s   = self.clone();
+        btn.connect_clicked(
+            clone!(@strong s => move|r|{
+                s.imp().mediator.borrow().as_ref().unwrap()
+                    .emit_by_name::<()>("next-match",
+                                        &[&ImtrEventObject::new()]);
+            }));
+    }
     // gen_btn_setup ///////////////////////////////////////
     fn gen_btn_setup(&self){
         let btn = self.imp().gen_btn.clone();
-
-        let s = self.clone();
+        let s   = self.clone();
         btn.connect_clicked(
             clone!(@strong s => move|r|{
                 s.imp().mediator.borrow().as_ref().unwrap()
                     .emit_by_name::<()>("build-tournament",
                                         &[&ImtrEventObject::new()]);
             }));
-
-
-
-        // let evt = ImtrEventObject::new();
-        // evt.set_path(Path::new("/dev/shm/test.png"), Path::new("/dev/shm/test.png"),);
-        // s.imp().mediator.borrow().as_ref().unwrap()
-        //     .emit_by_name::<()>("directory-selected", &[&evt]);
-
-
     }
     // new /////////////////////////////////////////////////
     pub fn new() -> Self{
@@ -86,8 +87,10 @@ impl ImtrButtonBox{
         obj.gen_btn_setup();
         obj.append(&obj.imp().gen_btn);
 
-        obj.append(&obj.imp().prev_btn);
+        obj.next_btn_setup();
         obj.append(&obj.imp().next_btn);
+
+        obj.append(&obj.imp().prev_btn);
         obj.append(&obj.imp().save_btn);
         obj.append(&obj.imp().load_btn);
 

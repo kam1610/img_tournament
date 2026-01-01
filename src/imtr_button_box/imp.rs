@@ -71,7 +71,7 @@ impl Default    for ImtrButtonBox {
         Self{
             dir_btn  : Button::with_label("dir"),
             dir_lbl  : Label::builder().css_classes(vec!["dir_lbl"]).label("...").build(),
-            year_lbl : Label::new(Some("year")),
+            year_lbl : Label::new(Some("year:")),
             year_btn : spin_y,
             mon_lbl  : Label::new(Some("mon:")),
             mon_btn  : spin_m,

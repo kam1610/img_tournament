@@ -63,7 +63,7 @@ pub struct ImtrPreview{
     #[property(get, set)]
     pub(super) mediator     : RefCell<Object>,
     #[property(get, set, builder(Decision::Undef))]
-    pub decision: Cell<Decision>,
+    pub(super) decision: Cell<Decision>,
 }
 // subclass ////////////////////////////////////////////////
 #[glib::object_subclass]
