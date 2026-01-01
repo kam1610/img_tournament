@@ -126,6 +126,7 @@ impl ImtrPreview{
     // update_pixbuf ///////////////////////////////////////
     fn update_pixbuf(&self, e: ImtrEventObject){
         let (path_a, path_b) = e.get_path();
+        self.imp().decision.set(Decision::Undef);
         self.set_buf_from_path(path_a, path_b);
         self.prepare_scale_buf();
         self.queue_draw();

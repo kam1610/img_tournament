@@ -50,8 +50,7 @@ impl ImtrMediator{
                     let alert = AlertDialog::builder()
                         .modal(true)
                         .message("please choose directory contains at least 2 image files")
-                        .build()
-                        .show(Some(&win));
+                        .build().show(Some(&win));
                     return;
                 }
 
@@ -89,12 +88,52 @@ impl ImtrMediator{
                 evt.set_path(pa, pb);
                 s.imp().pwin.borrow().clone()
                     .downcast::<ImtrPreview>()
-                    .expect("(ImtrMediator::build-tournament) imtr_preview is pected")
+                    .expect("(ImtrMediator::build-tournament) imtr_preview is expected")
                     .emit_by_name::<()>("set-images", &[&evt]);
 
             })
         );
+        // next-match //////////////////////////////////////
+        obj.connect_closure(
+            "next-match",
+            false,
+            closure_local!(|s: Self, e: ImtrEventObject|{
+                let dec = s.imp().pwin.borrow().downcast_ref::<ImtrPreview>()
+                    .expect("ImtrPreview is expected")
+                    .property::<Decision>("decision");
+                let ix = s.imp().match_num.get();
+                let sz = s.imp().match_list.borrow().len();
 
+                if dec == Decision::Undef {
+                    let win = s.imp().win.borrow().clone()
+                        .downcast::<Window>().expect("Window");
+                    let alert = AlertDialog::builder()
+                        .modal(true)
+                        .message("please click one of the images")
+                        .build().show(Some(&win));
+                    return;
+                }
+                // update decision
+                &s.imp().match_list.borrow()[ix].borrow_mut().decision.set(dec);
+                // obtain next match
+                if ix < (sz - 1){
+                    let n_temp = s.imp().match_list.borrow();
+                    let n = n_temp[ix+1].borrow();
+
+                    s.imp().match_num.set(ix+1);
+
+                    let path_l = resolve_winner_leaf(&n.left.as_ref().unwrap() );
+                    let path_r = resolve_winner_leaf(&n.right.as_ref().unwrap());
+
+                    let evt = ImtrEventObject::new();
+                    evt.set_path(path_l, path_r);
+                    s.imp().pwin.borrow().clone()
+                        .downcast::<ImtrPreview>()
+                        .expect("imtr_preview is expected")
+                        .emit_by_name::<()>("set-images", &[&evt]);
+                }
+            })
+        );
         return obj;
     }
 }

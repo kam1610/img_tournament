@@ -78,7 +78,7 @@ impl Node{
         Self::depth(&self.left) as isize - Self::depth(&self.right) as isize }
 }
 // resolve_winner_leaf /////////////////////////////////////
-fn resolve_winner_leaf(node: &Rc<RefCell<Node>>) -> Option<PathBuf> {
+pub fn resolve_winner_leaf(node: &Rc<RefCell<Node>>) -> Option<PathBuf> {
     let n = node.borrow();
     match (&n.left, &n.right, &n.decision.get()) {
         // self is leaf
