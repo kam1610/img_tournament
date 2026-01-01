@@ -51,11 +51,13 @@ impl ScaleFactor{
 #[derive(Debug, Properties)]
 #[properties(wrapper_type = super::ImtrPreview)]
 pub struct ImtrPreview{
-    pub(super) path_a       : Option<PathBuf>,
+    #[property(get, set)]
+    pub(super) path_a       : RefCell<Option<PathBuf>>,
     pub(super) pbuf_a       : RefCell<Option<Pixbuf>>,
     pub(super) scale_pbuf_a : RefCell<Option<Pixbuf>>,
     pub(super) scale_fact_a : RefCell<ScaleFactor>,
-    pub(super) path_b       : Option<PathBuf>,
+    #[property(get, set)]
+    pub(super) path_b       : RefCell<Option<PathBuf>>,
     pub(super) pbuf_b       : RefCell<Option<Pixbuf>>,
     pub(super) scale_pbuf_b : RefCell<Option<Pixbuf>>,
     pub(super) scale_fact_b : RefCell<ScaleFactor>,
@@ -99,11 +101,11 @@ impl DrawingAreaImpl for ImtrPreview {}
 impl Default         for ImtrPreview {
     fn default() -> Self{
         Self{
-            path_a       : None,
+            path_a       : RefCell::new(None),
             pbuf_a       : RefCell::new(None),
             scale_pbuf_a : RefCell::new(None),
             scale_fact_a : RefCell::new(ScaleFactor{scale:0.0, dst_w:0, dst_h:0, ofst_x:0, ofst_y:0}),
-            path_b       : None,
+            path_b       : RefCell::new(None),
             pbuf_b       : RefCell::new(None),
             scale_pbuf_b : RefCell::new(None),
             scale_fact_b : RefCell::new(ScaleFactor{scale:0.0, dst_w:0, dst_h:0, ofst_x:0, ofst_y:0}),
