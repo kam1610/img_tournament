@@ -73,7 +73,6 @@ pub fn build_ui(app: &Application) {
     let mediator = ImtrMediator::new();
     btn_box.set_mediator(Some(mediator.clone().upcast::<Object>()));
 
-
     let window = ApplicationWindow::builder()
         .application(app)
         .title( String::from("img_tournament") )
@@ -82,9 +81,10 @@ pub fn build_ui(app: &Application) {
         .child(&vbox)
         .build();
 
-    mediator.set_property("btn_box", btn_box.clone());
-    mediator.set_property("pwin", pwin.clone());
-    mediator.set_property("win", window.clone());
+    mediator.set_property("btn_box",  btn_box.clone());
+    mediator.set_property("pwin",     pwin.clone());
+    mediator.set_property("win",      window.clone());
+    pwin.set_property    ("mediator", mediator.clone());
 
     window.present();
 

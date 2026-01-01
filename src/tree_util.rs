@@ -5,9 +5,18 @@ use std::rc::Rc;
 use std::cell::Cell;
 use std::cell::RefCell;
 
+use gtk::glib::prelude::*;
+use gtk::glib::Properties;
+use gtk::glib;
+
 // Decision //////////////////////////////////////////////////
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum Decision { Undef, Left, Right }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default, glib::Enum)]
+#[enum_type(name = "Decision")]
+pub enum Decision {
+    #[default]
+    Undef,
+    Left,
+    Right }
 // Node ////////////////////////////////////////////////////
 #[derive(Debug)]
 pub struct Node{
