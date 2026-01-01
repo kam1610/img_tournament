@@ -98,15 +98,16 @@ impl ImtrMediator{
             "next-match",
             false,
             closure_local!(|s: Self, e: ImtrEventObject|{
-                let dec = s.imp().pwin.borrow().downcast_ref::<ImtrPreview>()
-                    .expect("ImtrPreview is expected")
-                    .property::<Decision>("decision");
-                let ix = s.imp().match_num.get();
-                let sz = s.imp().match_list.borrow().len();
+                let pwin_temp = s.imp().pwin.borrow();
+                let pwin = pwin_temp.downcast_ref::<ImtrPreview>()
+                    .expect("ImtrPreview is expected");
+                let dec = pwin.property::<Decision>("decision");
+                let ix  = s.imp().match_num.get();
+                let sz  = s.imp().match_list.borrow().len();
+                let win = s.imp().win.borrow().clone()
+                    .downcast::<Window>().expect("Window");
 
                 if dec == Decision::Undef {
-                    let win = s.imp().win.borrow().clone()
-                        .downcast::<Window>().expect("Window");
                     let alert = AlertDialog::builder()
                         .modal(true)
                         .message("please click one of the images")
@@ -131,7 +132,17 @@ impl ImtrMediator{
                         .downcast::<ImtrPreview>()
                         .expect("imtr_preview is expected")
                         .emit_by_name::<()>("set-images", &[&evt]);
+                    return;
                 }
+
+                // winner
+                let p = pwin.get_path(dec);
+                let alert = AlertDialog::builder()
+                    .modal(true)
+                    .message( format!("the winner is {:?}", p) )
+                    .build().show(Some(&win));
+                return;
+
             })
         );
         return obj;

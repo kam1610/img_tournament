@@ -28,9 +28,9 @@
 
          - [X] 選択結果をPreviewWindowから取得してNodeに保存
 
-         - [ ] 次の対戦がある
-           - [ ] いっこすすめる
-           - [ ] 左右について，存在すれば resolve_winner_leaf でPathBuf 取得
+         - [X] 次の対戦がある
+           - [X] いっこすすめる
+           - [X] 左右について，存在すれば resolve_winner_leaf でPathBuf 取得
                  なければ None を設定して PreviewWin に set-image を発行
          - [ ] ラスト
 
