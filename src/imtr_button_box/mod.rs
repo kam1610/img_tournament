@@ -25,6 +25,10 @@ glib::wrapper! {
 impl ImtrButtonBox{
     // set_mediator ////////////////////////////////////////
     pub fn set_mediator(&self, m: Option<Object>){ *self.imp().mediator.borrow_mut() = m; }
+    // get_filter_enabled //////////////////////////////////
+    pub fn get_filter_enabled(&self) -> bool{
+        return self.imp().filt_chk.is_active();
+    }
     // dir_btn_setup ///////////////////////////////////////
     fn dir_btn_setup(&self){
         let btn = self.imp().dir_btn.clone();
@@ -87,8 +91,9 @@ impl ImtrButtonBox{
         let obj: ImtrButtonBox = Object::builder().build();
         obj.append(&obj.imp().dir_btn);
         obj.append(&obj.imp().dir_lbl);
-        obj.dir_btn_setup();
+        obj.append(&obj.imp().filt_chk);
 
+        obj.dir_btn_setup();
         obj.append(&obj.imp().year_lbl);
         obj.append(&obj.imp().year_btn);
 
