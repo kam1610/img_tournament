@@ -37,9 +37,9 @@ fn filter_by_extension(paths: Vec<PathBuf>) -> Vec<PathBuf> {
     }).collect()
 }
 // get_month_img_files /////////////////////////////////////
-pub fn get_month_img_files(dir: &Path, y: i32, m: u32) -> std::io::Result<Vec<PathBuf>> {
+pub fn get_month_img_files(dir: &Path, y: i32, m: u32, ymfilt: bool) -> std::io::Result<Vec<PathBuf>> {
     let files            = list_files(dir)?;
-    let filtered_by_data = filter_by_year_month(files, y, m);
+    let filtered_by_data = if ymfilt { filter_by_year_month(files, y, m) } else { files };
     let filtered_files   = filter_by_extension(filtered_by_data);
     // debug
     for f in &filtered_files{ println!("{}", f.display()); }

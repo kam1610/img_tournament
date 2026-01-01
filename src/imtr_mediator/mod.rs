@@ -46,7 +46,8 @@ impl ImtrMediator{
                     .downcast::<ImtrButtonBox>().expect("ImtrButtonBox");
                 let lst = get_month_img_files(&btn_box.imp().dir.borrow(),
                                               btn_box.imp().year_btn.value() as i32,
-                                              btn_box.imp().mon_btn.value() as u32)
+                                              btn_box.imp().mon_btn.value() as u32,
+                                              btn_box.get_filter_enabled())
                     .expect("tournament list");
                 if lst.len() < 2 {
                     let win = s.imp().win.borrow().clone()

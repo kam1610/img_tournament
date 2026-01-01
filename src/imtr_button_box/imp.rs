@@ -7,6 +7,7 @@ use gtk::Button;
 use gtk::SpinButton;
 use gtk::Adjustment;
 use gtk::Label;
+use gtk::CheckButton;
 use gtk::subclass::prelude::*;
 use gtk::glib;
 use gtk::glib::subclass::Signal;
@@ -17,6 +18,7 @@ use gtk::glib::Object;
 pub struct ImtrButtonBox {
     pub dir_btn  : Button,
     pub dir_lbl  : Label,
+    pub filt_chk : CheckButton,
     pub year_lbl : Label,
     pub year_btn : SpinButton,
     pub mon_lbl  : Label,
@@ -70,7 +72,10 @@ impl Default    for ImtrButtonBox {
             .build();
         Self{
             dir_btn  : Button::with_label("dir"),
-            dir_lbl  : Label::builder().css_classes(vec!["dir_lbl"]).label("...").build(),
+            dir_lbl  : Label::builder()
+                .css_classes(vec!["dir_lbl"]).label("...").build(),
+            filt_chk : CheckButton::builder()
+                .active(true).label("filter by year/month").build(),
             year_lbl : Label::new(Some("year:")),
             year_btn : spin_y,
             mon_lbl  : Label::new(Some("mon:")),
