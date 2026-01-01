@@ -107,12 +107,12 @@ impl ImtrPreview{
                         self.imp().divstate.set(DivState::H);
                         *self.imp().scale_fact_a.borrow_mut() = result_h_a.clone();
                         *self.imp().scale_fact_b.borrow_mut() = result_h_b.clone();
-                        (result_h_a.dst_w,  result_h_a.dst_h, result_h_b.dst_w, result_h_b.dst_w)
+                        (result_h_a.dst_w,  result_h_a.dst_h, result_h_b.dst_w, result_h_b.dst_h)
                     } else {
                         self.imp().divstate.set(DivState::V);
                         *self.imp().scale_fact_a.borrow_mut() = result_v_a.clone();
                         *self.imp().scale_fact_b.borrow_mut() = result_v_b.clone();
-                        (result_v_a.dst_w,  result_v_a.dst_h, result_v_b.dst_w, result_v_b.dst_w)
+                        (result_v_a.dst_w,  result_v_a.dst_h, result_v_b.dst_w, result_v_b.dst_h)
                     };
                 println!("calculated: {}, {}, {}, {}\n {:?}\n {:?}\n {:?}\n {:?}",
                          a_w, a_h, b_w, b_h, result_h_a, result_h_b, result_v_a, result_v_b);
