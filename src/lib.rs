@@ -83,6 +83,7 @@ pub fn build_ui(app: &Application) {
         .build();
 
     mediator.set_property("btn_box", btn_box.clone());
+    mediator.set_property("pwin", pwin.clone());
     mediator.set_property("win", window.clone());
 
     window.present();
