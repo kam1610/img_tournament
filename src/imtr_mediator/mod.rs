@@ -139,7 +139,7 @@ impl ImtrMediator{
                 let p = pwin.get_path(dec);
                 let alert = AlertDialog::builder()
                     .modal(true)
-                    .message( format!("the winner is {:?}", p) )
+                    .message( format!("the winner is {:?}", p.unwrap()) )
                     .build().show(Some(&win));
                 return;
 
