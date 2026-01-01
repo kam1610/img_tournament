@@ -16,9 +16,12 @@ use gtk::glib::Object;
 use gtk::glib::closure_local;
 use gtk::gdk_pixbuf::InterpType;
 use gtk::gdk_pixbuf::Pixbuf;
+use gtk::GestureClick;
 
 use crate::imtr_event_object::ImtrEventObject;
-use crate::imtr_preview::imp::{DivState, Decision};
+use crate::imtr_preview::imp::{DivState};
+use crate::imtr_mediator::ImtrMediator;
+use crate::tree_util::Decision;
 use imp::ScaleFactor;
 
 // wrapper /////////////////////////////////////////////////
@@ -128,7 +131,8 @@ impl ImtrPreview{
         self.queue_draw();
     }
     // draw_func ///////////////////////////////////////////
-    fn draw_func_sub(&self, cr: &cairo::Context, spbuf: RefCell<Option<Pixbuf>>, sf: &RefCell<ScaleFactor>, ofst: bool){
+    fn draw_func_sub(&self,
+                     cr: &cairo::Context, spbuf: RefCell<Option<Pixbuf>>, sf: &RefCell<ScaleFactor>, ofst: bool){
         if spbuf.borrow().is_some() {
             let p = spbuf.borrow();
             let scale_crop_pixbuf = {
@@ -140,7 +144,6 @@ impl ImtrPreview{
                 if self.imp().divstate.get() == DivState::H { y = self.height() as f64 / 2.0; }
                 if self.imp().divstate.get() == DivState::V { x = self.width()  as f64 / 2.0; }
             }
-
             cr.set_source_pixbuf(&scale_crop_pixbuf,
                                  sf.borrow().ofst_x as f64 + x,
                                  sf.borrow().ofst_y as f64 + y);
@@ -154,6 +157,33 @@ impl ImtrPreview{
         let pwin = da.clone().downcast::<ImtrPreview>().expect("imtr_preview");
         pwin.draw_func_sub(cr, pwin.imp().scale_pbuf_a.clone(), &pwin.imp().scale_fact_a, false);
         pwin.draw_func_sub(cr, pwin.imp().scale_pbuf_b.clone(), &pwin.imp().scale_fact_b, true );
+
+        // selection frame
+        if pwin.imp().decision.get() == Decision::Undef { return; }
+        cr.set_source_rgb(0.0, 0.0, 1.0);
+        cr.set_line_width(4.0);
+        if pwin.imp().divstate.get() == DivState::H {
+            if pwin.imp().decision.get() == Decision::Left { // upper half
+                cr.rectangle(0.0,                 0.0,
+                             pwin.width() as f64, (pwin.height() / 2) as f64 - 2.0);
+                println!("upper half");
+            } else { // lower half
+                cr.rectangle(0.0,                 (pwin.height() / 2) as f64 + 2.0,
+                             pwin.width() as f64, (pwin.height() / 2) as f64);
+                println!("lower half");
+            }
+        } else {
+            if pwin.imp().decision.get() == Decision::Left { //  left half
+                cr.rectangle(0.0,                             0.0,
+                             (pwin.width() / 2) as f64 - 2.0, pwin.height() as f64);
+                println!("left half");
+            } else { // right half
+                cr.rectangle((pwin.width() / 2) as f64 + 2.0, 0.0,
+                             (pwin.width() / 2) as f64,       pwin.height() as f64);
+                println!("right half");
+            }
+        }
+        cr.stroke();
     }
     // new /////////////////////////////////////////////////
     pub fn new() -> Self{
@@ -166,17 +196,7 @@ impl ImtrPreview{
             pwin.prepare_scale_buf();
             pwin.queue_draw();
         });
-        /*
-
-        参考: 描画先ウィンドウサイズは obj.set_draw_func の内部で下記のようにpwin.width()などで参照している
-
-                    // scale from target to pwin
-            let (tgt_to_pwin_scale, _, _, _, _) =
-               util::get_scale_offset(target_w, target_h, pwin.width(), pwin.height());
-
-         */
-
-
+        // set-images //////////////////////////////////////
         obj.connect_closure(
             "set-images",
             false,
@@ -184,6 +204,26 @@ impl ImtrPreview{
                 p.update_pixbuf(e);
             })
         );
+        // gesture/preview-clicked /////////////////////////
+        let gesture_ctrl = GestureClick::new();
+        gesture_ctrl.connect_released(|g,_n,x,y|{
+            let pwin = g.widget()
+                .downcast::<ImtrPreview>().expect("preview window is expect");
+            let mediator = pwin.imp().mediator.clone().borrow().clone()
+                .downcast::<ImtrMediator>().expect("imtr mediator is expected");
+            if ((pwin.imp().divstate.get() == DivState::H) &&
+                ((y as i32) < (pwin.height() / 2))) ||
+                ((pwin.imp().divstate.get() == DivState::V) &&
+                 ((x as i32) < (pwin.width() / 2)))  {
+                     pwin.imp().decision.set(Decision::Left);
+                    println!("left is selected");
+            } else {
+                    pwin.imp().decision.set(Decision::Right);
+                    println!("right is selected");
+            }
+            pwin.queue_draw();
+        });
+        obj.add_controller(gesture_ctrl);
         return obj;
     }
 }

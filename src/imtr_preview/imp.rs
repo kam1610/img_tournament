@@ -11,11 +11,13 @@ use gtk::gdk_pixbuf::Pixbuf;
 use gtk::subclass::prelude::*;
 use gtk::glib::subclass::Signal;
 use gtk::prelude::*;
+use gtk::glib::Properties;
 
 use crate::imtr_event_object::ImtrEventObject;
-#[derive(Clone, Copy, PartialEq)]
+use crate::tree_util::Decision;
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum DivState { N, H, V }
-pub enum Decision { Undef, Left, Right }
 
 // ScaleFactor /////////////////////////////////////////////
 #[derive(Debug, Clone)]
@@ -46,6 +48,8 @@ impl ScaleFactor{
     }
 }
 // struct //////////////////////////////////////////////////
+#[derive(Debug, Properties)]
+#[properties(wrapper_type = super::ImtrPreview)]
 pub struct ImtrPreview{
     pub(super) path_a       : Option<PathBuf>,
     pub(super) pbuf_a       : RefCell<Option<Pixbuf>>,
@@ -55,8 +59,11 @@ pub struct ImtrPreview{
     pub(super) pbuf_b       : RefCell<Option<Pixbuf>>,
     pub(super) scale_pbuf_b : RefCell<Option<Pixbuf>>,
     pub(super) scale_fact_b : RefCell<ScaleFactor>,
-    pub(super) decision     : Decision,
     pub(super) divstate     : Cell<DivState>,
+    #[property(get, set)]
+    pub(super) mediator     : RefCell<Object>,
+    #[property(get, set, builder(Decision::Undef))]
+    pub decision: Cell<Decision>,
 }
 // subclass ////////////////////////////////////////////////
 #[glib::object_subclass]
@@ -76,6 +83,16 @@ impl ObjectImpl for ImtrPreview {
         });
         return SIGNALS.as_ref();
     }
+    // properties //////////////////////////////////////////
+    fn properties() -> &'static [glib::ParamSpec] {
+        Self::derived_properties()
+    }
+    fn set_property(&self, id: usize, value: &glib::Value, pspec: &glib::ParamSpec) {
+        self.derived_set_property(id, value, pspec)
+    }
+    fn property(&self, id: usize, pspec: &glib::ParamSpec) -> glib::Value {
+        self.derived_property(id, pspec)
+    }
 }
 impl WidgetImpl      for ImtrPreview {}
 impl DrawingAreaImpl for ImtrPreview {}
@@ -90,8 +107,9 @@ impl Default         for ImtrPreview {
             pbuf_b       : RefCell::new(None),
             scale_pbuf_b : RefCell::new(None),
             scale_fact_b : RefCell::new(ScaleFactor{scale:0.0, dst_w:0, dst_h:0, ofst_x:0, ofst_y:0}),
-            decision     : Decision::Undef,
             divstate     : Cell::new(DivState::N),
+            mediator     : RefCell::new(Object::with_type(glib::types::Type::OBJECT)),
+            decision     : Cell::new(Decision::Undef),
         }
     }
 }

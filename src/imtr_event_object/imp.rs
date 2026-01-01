@@ -8,16 +8,17 @@ use gtk::subclass::prelude::*;
 use glib::ParamSpec;
 use glib::Properties;
 use glib::Value;
-// ImtrEventObject /////////////////////////////////////////
 
+use crate::tree_util::Decision;
+// ImtrEventObject /////////////////////////////////////////
 #[derive(Properties)]
 #[properties(wrapper_type = super::ImtrEventObject)]
 pub struct ImtrEventObject{
     // todo: eventtype and args
     #[property(get, set)]
     pub id: Cell<i32>,
-    pub path_a : RefCell<Option<PathBuf>>,
-    pub path_b : RefCell<Option<PathBuf>>,
+    pub path_a  : RefCell<Option<PathBuf>>,
+    pub path_b  : RefCell<Option<PathBuf>>,
 }
 
 // Subclass ////////////////////////////////////////////////

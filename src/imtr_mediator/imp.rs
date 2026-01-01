@@ -17,13 +17,13 @@ use crate::tree_util::*;
 #[properties(wrapper_type = super::ImtrMediator)]
 pub struct ImtrMediator{
     #[property(get, set)]
-    pub(super) win        : RefCell<Object>,
+    pub(super) win          : RefCell<Object>,
     #[property(get, set)]
-    pub(super) btn_box    : RefCell<Object>,
+    pub(super) btn_box      : RefCell<Object>,
     #[property(get, set)]
-    pub(super) pwin       : RefCell<Object>,
-    pub(super) match_list : RefCell<Vec<Rc<RefCell<Node>>>>,
-    pub(super) match_num  : Cell<usize>,
+    pub(super) pwin         : RefCell<Object>,
+    pub(super) match_list   : RefCell<Vec<Rc<RefCell<Node>>>>,
+    pub(super) match_num    : Cell<usize>,
 }
 // subclass ////////////////////////////////////////////////
 #[glib::object_subclass]
@@ -63,11 +63,11 @@ impl ObjectImpl for ImtrMediator{
 impl Default for ImtrMediator{
     fn default() -> Self{
         Self{
-            win       : RefCell::new(Object::with_type(glib::types::Type::OBJECT)),
-            pwin      : RefCell::new(Object::with_type(glib::types::Type::OBJECT)),
-            btn_box   : RefCell::new(Object::with_type(glib::types::Type::OBJECT)),
-            match_list: RefCell::new(vec![]),
-            match_num : Cell::new(0),
+            win          : RefCell::new(Object::with_type(glib::types::Type::OBJECT)),
+            pwin         : RefCell::new(Object::with_type(glib::types::Type::OBJECT)),
+            btn_box      : RefCell::new(Object::with_type(glib::types::Type::OBJECT)),
+            match_list   : RefCell::new(vec![]),
+            match_num    : Cell::new(0),
         }
     }
 }
