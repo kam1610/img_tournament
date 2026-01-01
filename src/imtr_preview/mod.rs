@@ -17,40 +17,13 @@ use gtk::gdk_pixbuf::Pixbuf;
 
 use crate::imtr_event_object::ImtrEventObject;
 use crate::imtr_preview::imp::{DivState, Decision};
+use imp::ScaleFactor;
 
 // wrapper /////////////////////////////////////////////////
 glib::wrapper! {
     pub struct ImtrPreview(ObjectSubclass<imp::ImtrPreview>)
         @extends gtk::DrawingArea, gtk::Widget,
         @implements Accessible, Buildable, ConstraintTarget;
-}
-// get_scale_offset ////////////////////////////////////////
-#[derive(Debug)]
-struct ScaleFactor{
-    pub scale  : f64,
-    pub dst_w  : i32, pub dst_h  : i32,
-    pub ofst_x : i32, pub ofst_y : i32,
-}
-impl ScaleFactor{
-    pub fn get_scale_offset(src_w: i32, src_h: i32, dst_w: i32, dst_h: i32 ) -> Self{
-        let scale = (dst_w as f64) / (src_w as f64);
-        if ((src_h as f64) * scale) <= (dst_h as f64) {
-            let ofst_y = (((dst_h as f64) - ((src_h as f64) * scale)) / 2.0) as i32;
-            return Self{
-                scale: scale,
-                dst_w: dst_w,
-                dst_h: ((src_h as f64) * scale) as i32,
-                ofst_x: 0, ofst_y: ofst_y};
-        }
-        let scale = (dst_h as f64) / (src_h as f64);
-        let ofst_x = (((dst_w as f64) - ((src_w as f64) * scale)) / 2.0) as i32;
-        return Self{
-            scale: scale,
-            dst_w: ((src_w as f64) * scale) as i32,
-            dst_h: dst_h,
-            ofst_x: ofst_x, ofst_y: 0
-        };
-    }
 }
 // impl ////////////////////////////////////////////////////
 impl ImtrPreview{
@@ -73,6 +46,7 @@ impl ImtrPreview{
                                                          self.width(), self.height() );
             let scale_buf_a = pbuf_a.scale_simple(result_a.dst_w, result_a.dst_h,
                                                   InterpType::Bilinear).unwrap();
+            *self.imp().scale_fact_a.borrow_mut() = result_a;
             *self.imp().pbuf_a.borrow_mut() = Some(scale_buf_a);
 
             self.imp().divstate.set(DivState::N);
@@ -85,6 +59,8 @@ impl ImtrPreview{
                                                          self.width(), self.height() );
             let scale_buf_b = pbuf_b.scale_simple(result_b.dst_w, result_b.dst_h,
                                                   InterpType::Bilinear).unwrap();
+
+            *self.imp().scale_fact_b.borrow_mut() = result_b;
             *self.imp().pbuf_b.borrow_mut() = Some(scale_buf_b);
 
             self.imp().divstate.set(DivState::N);
@@ -126,9 +102,13 @@ impl ImtrPreview{
                 let (a_w, a_h, b_w, b_h) =
                     if area_v < area_h {
                         self.imp().divstate.set(DivState::H);
+                        *self.imp().scale_fact_a.borrow_mut() = result_h_a.clone();
+                        *self.imp().scale_fact_b.borrow_mut() = result_h_b.clone();
                         (result_h_a.dst_w,  result_h_a.dst_h, result_h_b.dst_w, result_h_b.dst_w)
                     } else {
                         self.imp().divstate.set(DivState::V);
+                        *self.imp().scale_fact_a.borrow_mut() = result_v_a.clone();
+                        *self.imp().scale_fact_b.borrow_mut() = result_v_b.clone();
                         (result_v_a.dst_w,  result_v_a.dst_h, result_v_b.dst_w, result_v_b.dst_w)
                     };
                 println!("calculated: {}, {}, {}, {}\n {:?}\n {:?}\n {:?}\n {:?}",
@@ -151,18 +131,37 @@ impl ImtrPreview{
     fn draw_func(da: &DrawingArea, cr: &cairo::Context, w: i32, h: i32){
         let pwin = da.clone().downcast::<ImtrPreview>().expect("imtr_preview");
         if pwin.imp().scale_pbuf_a.borrow().is_some() {
+            // a
             let scale_pbuf = &*pwin.imp().scale_pbuf_a.borrow();
             let scale_crop_pixbuf = {
                 if let Some(ref p) = scale_pbuf { p.clone() }
                 else { return; }};
             cr.set_source_pixbuf(&scale_crop_pixbuf,
-                                 0.0, 0.0); // todo: 暫定, オフセット情報は prepare_scale_buf で作ったものを保存しておくか再計算
+                                 pwin.imp().scale_fact_a.borrow().ofst_x as f64,
+                                 pwin.imp().scale_fact_a.borrow().ofst_y as f64);
             cr.rectangle(0.0, 0.0,
                          pwin.width() as f64, pwin.height() as f64);
             if cr.fill().is_err(){
                 println!("draw image on PreviewWindow failed!");
             }
-            println!("window was filled");
+            // b
+            let scale_pbuf = &*pwin.imp().scale_pbuf_b.borrow();
+            let scale_crop_pixbuf = {
+                if let Some(ref p) = scale_pbuf { p.clone() }
+                else { return; }};
+
+            let mut x = 0.0; let mut y = 0.0;
+            if pwin.imp().divstate.get() == DivState::H { y = pwin.height() as f64 / 2.0; }
+            if pwin.imp().divstate.get() == DivState::V { x = pwin.width()  as f64 / 2.0; }
+
+            cr.set_source_pixbuf(&scale_crop_pixbuf,
+                                 pwin.imp().scale_fact_b.borrow().ofst_x as f64 + x,
+                                 pwin.imp().scale_fact_b.borrow().ofst_y as f64 + y);
+
+            cr.rectangle(x, y, pwin.width() as f64, pwin.height() as f64);
+            if cr.fill().is_err(){
+                println!("draw image on PreviewWindow failed!");
+            }
         }
         println!("draw_func finished");
     }
