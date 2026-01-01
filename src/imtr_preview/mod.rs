@@ -126,6 +126,8 @@ impl ImtrPreview{
     // update_pixbuf ///////////////////////////////////////
     fn update_pixbuf(&self, e: ImtrEventObject){
         let (path_a, path_b) = e.get_path();
+        // self.imp().path_a = Some(path_a);
+        // self.imp().path_b = Some(path_b);
         self.imp().decision.set(Decision::Undef);
         self.set_buf_from_path(path_a, path_b);
         self.prepare_scale_buf();
@@ -185,6 +187,14 @@ impl ImtrPreview{
             }
         }
         cr.stroke();
+    }
+    // get_path ////////////////////////////////////////
+    pub fn get_path(&self, dec: Decision) -> Option<PathBuf>{
+        match dec{
+            Decision::Left  => self.imp().path_a.clone(),
+            Decision::Right => self.imp().path_b.clone(),
+            Decision::Undef => None,
+        }
     }
     // new /////////////////////////////////////////////////
     pub fn new() -> Self{
