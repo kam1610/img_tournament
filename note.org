@@ -16,23 +16,27 @@
        - [X] 対戦ツリーを生成
        - [X] 最初の対戦を選択してprevに通知
 
-  4. [ ] prev
-     - mediatorに通知，ひとつ前の対戦を選択
+  4. [X] preview 選択した側に枠を描画
 
-  5. [ ] next
+  5. [ ] DEBUG: Right側のアスペクトが意図と異なる 2023/4
+
+  6. [ ] next
      - mediatorに通知，現在の選択状態を保存して次の対戦を選択．選択処理はgenと同じ
 
-  6. save state
+  5. [ ] prev
+     - mediatorに通知，ひとつ前の対戦を選択
+
+  7. save state
      - 未対応
 
-  7. load state
+  8. load state
      - 未対応
 
-  8. export result
+  9. export result
      - ポップアップ/メッセージウィンドウかなにかで表示
 
-  9. click panel
-     - [ ] 分割方向に応じて選択された側に枠を表示
+  10. click panel
+      - [ ] 分割方向に応じて選択された側に枠を表示
 
-  10. double-click panel
+  11. double-click panel
       - [ ] 選択とnext相当
