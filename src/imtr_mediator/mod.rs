@@ -3,6 +3,7 @@ mod imp;
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::path::PathBuf;
+use std::fs::OpenOptions;
 
 use gtk::prelude::*;
 use gtk::subclass::prelude::ObjectSubclassIsExt;
@@ -15,18 +16,78 @@ use gtk::Orientation;
 use gtk::Label;
 use gtk::Button;
 use gtk::glib::clone;
+use gtk::gdk_pixbuf::InterpType;
+use gtk::gdk_pixbuf::Pixbuf;
+use gtk::cairo::ImageSurface;
+use gtk::cairo::Format;
 
 use crate::imtr_event_object::ImtrEventObject;
 use crate::imtr_button_box::ImtrButtonBox;
 use crate::month_img_list::get_month_img_files;
 use crate::imtr_preview::ImtrPreview;
 use crate::tree_util::*;
+use crate::scale_factor::ScaleFactor;
 // wrapper /////////////////////////////////////////////////
 glib::wrapper! {
     pub struct ImtrMediator(ObjectSubclass<imp::ImtrMediator>);
 }
 // ImtrMediator ////////////////////////////////////////////
 impl ImtrMediator{
+
+    // export-tournament-result ////////////////////////////
+    fn export_tournament_result_sub(node: &Rc<RefCell<Node>>, depth: i32, width: i32,
+                                    cr: &cairo::Context, img_px: i32, img_mgn: i32) -> i32{
+        let ofx = depth * (img_px + img_mgn);
+        let ofy = width * (img_px + img_mgn);
+        if node.borrow().decision.get() != Decision::Undef{
+            let p    = resolve_winner_leaf(node).unwrap();
+            let pbuf = Pixbuf::from_file(p).expect("(export_tournament_result_sub) load img file error");
+            let sfac = ScaleFactor::get_scale_offset(pbuf.width(), pbuf.height(), img_px, img_px);
+            let sbuf = pbuf.scale_simple(sfac.dst_w, sfac.dst_h,InterpType::Bilinear).unwrap();
+            let ofx  = ofx + sfac.ofst_x;
+            let ofy  = ofy + sfac.ofst_y;
+
+            cr.set_source_pixbuf(&sbuf, ofx as f64, ofy as f64);
+            let extents = cr.clip_extents().unwrap();
+            let width   = extents.2 - extents.0;  // x2 - x1
+            let height  = extents.3 - extents.1; // y2 - y1
+            cr.rectangle(0.0, 0.0, width, height);
+            if cr.fill().is_err(){println!("draw image on PreviewWindow failed!"); }
+
+        }
+        0
+    }
+    fn export_tournament_result(&self){
+
+        let list = &self.imp().match_list;
+        let root = list.borrow().last().unwrap().clone();
+        let img_px  = 80;
+        let img_mgn =  4;
+
+        let node_num = list.borrow().len();
+        let leaf_num = node_num + 1;
+        let target_h = (img_px + img_mgn) * (node_num + leaf_num) as i32;
+        let target_w = (img_px + img_mgn) * ((node_num + leaf_num) as f64).log2().ceil() as i32;
+
+        // 0. prepare surface
+        let surface = {
+            if let Ok(sf) = ImageSurface::create(Format::ARgb32, target_w, target_h) { sf }
+            else { println!("(export_tounament_result) creating surface failed"); return; } };
+        let cr = {
+            if let Ok(ctx) = cairo::Context::new(&surface) { ctx }
+            else { println!("(export_tounament_result) creating context failed"); return; } };
+
+        Self::export_tournament_result_sub(&root, 0, 0, &cr, img_px, img_mgn);
+
+        let mut path_buf = PathBuf::from("./img_tournament_result.png");
+        let mut out_file  = {
+            if let Ok(f) = OpenOptions::new()
+                .read(false).write(true).create(true).open(&path_buf) { f }
+            else { println!("(export_images) can not open: {}",
+                            path_buf.to_str().unwrap()); return; } };
+        surface.write_to_png(&mut out_file).expect("write_to_png in export_images");
+    }
+    // new /////////////////////////////////////////////////
     pub fn new() -> Self{
         let obj = glib::Object::new::<ImtrMediator>();
         // directory-selected //////////////////////////////
@@ -65,7 +126,7 @@ impl ImtrMediator{
                     root = Some(insert(root.take(), p, opt)); opt+= 1; } // build tree
                 print_tree(&root.clone().unwrap(), 0);
 
-                let match_list = Node::get_match_up_list( root.expect("root node") );
+                let match_list = Node::get_match_up_list( root.as_ref().expect("root node").clone() );
 
                 for m in match_list.iter(){
                     println!("opt: {}, h: {}, path: {:?}",
@@ -91,6 +152,7 @@ impl ImtrMediator{
                         None
                     };
                 evt.set_path(pa, pb);
+
                 s.imp().pwin.borrow().clone()
                     .downcast::<ImtrPreview>()
                     .expect("(ImtrMediator::build-tournament) imtr_preview is expected")
@@ -172,6 +234,10 @@ impl ImtrMediator{
 
                 winner_win.set_child(Some(&vbox));
                 winner_win.present();
+
+                // experimental!
+                s.export_tournament_result();
+
                 return;
 
             })

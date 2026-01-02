@@ -4,6 +4,8 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::cell::RefCell;
 use std::cell::Cell;
+use std::rc::Rc;
+use std::fs::OpenOptions;
 
 use gtk::prelude::*;
 use gtk::DrawingArea;
@@ -16,13 +18,17 @@ use gtk::glib::Object;
 use gtk::glib::closure_local;
 use gtk::gdk_pixbuf::InterpType;
 use gtk::gdk_pixbuf::Pixbuf;
+use gtk::cairo::ImageSurface;
+use gtk::cairo::Format;
 use gtk::GestureClick;
 
 use crate::imtr_event_object::ImtrEventObject;
 use crate::imtr_preview::imp::{DivState};
 use crate::imtr_mediator::ImtrMediator;
 use crate::tree_util::Decision;
-use imp::ScaleFactor;
+
+use crate::tree_util::*;
+use crate::scale_factor::ScaleFactor;
 
 // wrapper /////////////////////////////////////////////////
 glib::wrapper! {

@@ -4,6 +4,7 @@ mod imtr_mediator;
 mod imtr_preview;
 mod month_img_list;
 mod tree_util;
+mod scale_factor;
 
 use std::path::Path;
 use std::path::PathBuf;
