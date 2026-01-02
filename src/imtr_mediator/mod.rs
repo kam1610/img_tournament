@@ -39,26 +39,29 @@ impl ImtrMediator{
                                     cr: &cairo::Context, img_px: i32, img_mgn: i32) -> i32{
         let ofx = depth * (img_px + img_mgn);
         let ofy = width * (img_px + img_mgn);
+
+        let p = if let Some(p) = &node.borrow().path { p }
+        else { &resolve_winner_leaf(node).unwrap() } ;
+
+        let p    = resolve_winner_leaf(node).unwrap();
+        let pbuf = Pixbuf::from_file(p).expect("(export_tournament_result_sub) load img file error");
+        let sfac = ScaleFactor::get_scale_offset(pbuf.width(), pbuf.height(), img_px, img_px);
+        let sbuf = pbuf.scale_simple(sfac.dst_w, sfac.dst_h,InterpType::Bilinear).unwrap();
+        let ofx  = ofx + sfac.ofst_x;
+        let ofy  = ofy + sfac.ofst_y;
+
+        cr.set_source_pixbuf(&sbuf, ofx as f64, ofy as f64);
+        let extents   = cr.clip_extents().unwrap();
+        let cr_width  = extents.2 - extents.0; // x2 - x1
+        let cr_height = extents.3 - extents.1; // y2 - y1
+        cr.rectangle(0.0, 0.0, cr_width, cr_height);
+        if cr.fill().is_err(){println!("draw image on PreviewWindow failed!"); }
+
+
         if let Some(p) = &node.borrow().path {
             let indent = "  ".repeat(depth as usize);
             println!("{}Leaf: opt={}, width={}, {}", indent, node.borrow().opt, width, p.display());
-            return 0;
-        }
-
-        if node.borrow().decision.get() != Decision::Undef{
-            let p    = resolve_winner_leaf(node).unwrap();
-            let pbuf = Pixbuf::from_file(p).expect("(export_tournament_result_sub) load img file error");
-            let sfac = ScaleFactor::get_scale_offset(pbuf.width(), pbuf.height(), img_px, img_px);
-            let sbuf = pbuf.scale_simple(sfac.dst_w, sfac.dst_h,InterpType::Bilinear).unwrap();
-            let ofx  = ofx + sfac.ofst_x;
-            let ofy  = ofy + sfac.ofst_y;
-
-            cr.set_source_pixbuf(&sbuf, ofx as f64, ofy as f64);
-            let extents = cr.clip_extents().unwrap();
-            let width   = extents.2 - extents.0;  // x2 - x1
-            let height  = extents.3 - extents.1; // y2 - y1
-            cr.rectangle(0.0, 0.0, width, height);
-            if cr.fill().is_err(){println!("draw image on PreviewWindow failed!"); }
+            return width;
         }
 
         let indent = "  ".repeat(depth as usize);
@@ -66,14 +69,14 @@ impl ImtrMediator{
 
         let mut w = width;
         if let Some(l) = &node.borrow().left {
-            w += Self::export_tournament_result_sub(l, depth+1, w + 1, cr, img_px, img_mgn);
+            w = Self::export_tournament_result_sub(l, depth+1, width + 1, cr, img_px, img_mgn);
             println!("w: {}", w);
         }
         if let Some(r) = &node.borrow().right {
-            w += Self::export_tournament_result_sub(r, depth+1, w + 1, cr, img_px, img_mgn);
+            w = Self::export_tournament_result_sub(r, depth+1, w + 1, cr, img_px, img_mgn);
             println!("w: {}", w);
         }
-        return w + 1;
+        return w;
 
     }
     fn export_tournament_result(&self){
