@@ -39,6 +39,12 @@ impl ImtrMediator{
                                     cr: &cairo::Context, img_px: i32, img_mgn: i32) -> i32{
         let ofx = depth * (img_px + img_mgn);
         let ofy = width * (img_px + img_mgn);
+        if let Some(p) = &node.borrow().path {
+            let indent = "  ".repeat(depth as usize);
+            println!("{}Leaf: opt={}, width={}, {}", indent, node.borrow().opt, width, p.display());
+            return 0;
+        }
+
         if node.borrow().decision.get() != Decision::Undef{
             let p    = resolve_winner_leaf(node).unwrap();
             let pbuf = Pixbuf::from_file(p).expect("(export_tournament_result_sub) load img file error");
@@ -53,9 +59,22 @@ impl ImtrMediator{
             let height  = extents.3 - extents.1; // y2 - y1
             cr.rectangle(0.0, 0.0, width, height);
             if cr.fill().is_err(){println!("draw image on PreviewWindow failed!"); }
-
         }
-        0
+
+        let indent = "  ".repeat(depth as usize);
+        println!("{}Node: opt={}, width={}", indent, node.borrow().opt, width);
+
+        let mut w = width;
+        if let Some(l) = &node.borrow().left {
+            w += Self::export_tournament_result_sub(l, depth+1, w + 1, cr, img_px, img_mgn);
+            println!("w: {}", w);
+        }
+        if let Some(r) = &node.borrow().right {
+            w += Self::export_tournament_result_sub(r, depth+1, w + 1, cr, img_px, img_mgn);
+            println!("w: {}", w);
+        }
+        return w + 1;
+
     }
     fn export_tournament_result(&self){
 
