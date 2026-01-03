@@ -1,12 +1,9 @@
 use serde::{Serialize, Deserialize};
-use std::path::Path;
 use std::path::PathBuf;
 use std::rc::Rc;
 use std::cell::Cell;
 use std::cell::RefCell;
 
-use gtk::glib::prelude::*;
-use gtk::glib::Properties;
 use gtk::glib;
 
 // Decision //////////////////////////////////////////////////
@@ -28,7 +25,6 @@ pub struct Node{
     pub opt   : isize,
 }
 impl Node{
-    pub fn set_decision(&self, d: Decision){ self.decision.set(d); }
     pub fn get_match_up_list(n: Rc<RefCell<Node>>) -> Vec<Rc<RefCell<Node>>>{
         let mut v = vec![];
         // left

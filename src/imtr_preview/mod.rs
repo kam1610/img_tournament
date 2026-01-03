@@ -1,11 +1,7 @@
 mod imp;
 
-use std::path::Path;
 use std::path::PathBuf;
 use std::cell::RefCell;
-use std::cell::Cell;
-use std::rc::Rc;
-use std::fs::OpenOptions;
 
 use gtk::prelude::*;
 use gtk::DrawingArea;
@@ -18,16 +14,12 @@ use gtk::glib::Object;
 use gtk::glib::closure_local;
 use gtk::gdk_pixbuf::InterpType;
 use gtk::gdk_pixbuf::Pixbuf;
-use gtk::cairo::ImageSurface;
-use gtk::cairo::Format;
 use gtk::GestureClick;
 
 use crate::imtr_event_object::ImtrEventObject;
 use crate::imtr_preview::imp::{DivState};
-use crate::imtr_mediator::ImtrMediator;
 use crate::tree_util::Decision;
 
-use crate::tree_util::*;
 use crate::scale_factor::ScaleFactor;
 
 // wrapper /////////////////////////////////////////////////
@@ -145,7 +137,7 @@ impl ImtrPreview{
         if spbuf.borrow().is_some() {
             let p = spbuf.borrow();
             let scale_crop_pixbuf = {
-                if let Some(ref p) = p.as_ref() { p.clone() }
+                if let Some(ref p) = *p { p.clone() }
                 else { return; }};
 
             let mut x = 0.0; let mut y = 0.0;
@@ -162,7 +154,7 @@ impl ImtrPreview{
                 println!("draw image on PreviewWindow failed!"); }
         }
     }
-    fn draw_func(da: &DrawingArea, cr: &cairo::Context, w: i32, h: i32){
+    fn draw_func(da: &DrawingArea, cr: &cairo::Context, _w: i32, _h: i32){
         let pwin = da.clone().downcast::<ImtrPreview>().expect("imtr_preview");
         pwin.draw_func_sub(cr, pwin.imp().scale_pbuf_a.clone(), &pwin.imp().scale_fact_a, false);
         pwin.draw_func_sub(cr, pwin.imp().scale_pbuf_b.clone(), &pwin.imp().scale_fact_b, true );
@@ -192,7 +184,9 @@ impl ImtrPreview{
                 println!("right half");
             }
         }
-        cr.stroke();
+        if cr.stroke().is_err(){
+            println!("(draw_func) cr.stroke() failed ");
+        }
     }
     // get_path ////////////////////////////////////////
     pub fn get_path(&self, dec: Decision) -> Option<PathBuf>{
@@ -226,8 +220,6 @@ impl ImtrPreview{
         gesture_ctrl.connect_released(|g,_n,x,y|{
             let pwin = g.widget()
                 .downcast::<ImtrPreview>().expect("preview window is expect");
-            let mediator = pwin.imp().mediator.clone().borrow().clone()
-                .downcast::<ImtrMediator>().expect("imtr mediator is expected");
             if ((pwin.imp().divstate.get() == DivState::H) &&
                 ((y as i32) < (pwin.height() / 2))) ||
                 ((pwin.imp().divstate.get() == DivState::V) &&

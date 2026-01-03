@@ -1,5 +1,4 @@
 use std::cell::RefCell;
-use std::cell::Cell;
 use std::path::PathBuf;
 use once_cell::sync::Lazy;
 
@@ -11,7 +10,6 @@ use gtk::CheckButton;
 use gtk::subclass::prelude::*;
 use gtk::glib;
 use gtk::glib::subclass::Signal;
-use gtk::glib::object::WeakRef;
 use gtk::glib::Object;
 // ImtrButtonBox ///////////////////////////////////////////
 #[derive(Debug)]

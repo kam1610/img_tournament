@@ -1,21 +1,15 @@
 mod imp;
 
-use std::path::Path;
-
 use gtk::gio::Cancellable;
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::FileDialog;
 use gtk::Window;
-use gtk::Button;
 use gtk::glib;
-use gtk::Label;
 use gtk::glib::object::Object;
 use gtk::glib::clone;
-use gtk::glib::WeakRef;
 
 use crate::imtr_event_object::ImtrEventObject;
-use crate::get_month_img_files;
 ////////////////////////////////////////////////////////////
 glib::wrapper! {
     pub struct ImtrButtonBox(ObjectSubclass<imp::ImtrButtonBox>)
@@ -58,7 +52,7 @@ impl ImtrButtonBox{
         let btn = self.imp().next_btn.clone();
         let s   = self.clone();
         btn.connect_clicked(
-            clone!(@strong s => move|r|{
+            clone!(@strong s => move|_r|{
                 s.imp().mediator.borrow().as_ref().unwrap()
                     .emit_by_name::<()>("next-match",
                                         &[&ImtrEventObject::new()]);
@@ -69,7 +63,7 @@ impl ImtrButtonBox{
         let btn = self.imp().prev_btn.clone();
         let s   = self.clone();
         btn.connect_clicked(
-            clone!(@strong s => move|r|{
+            clone!(@strong s => move|_r|{
                 s.imp().mediator.borrow().as_ref().unwrap()
                     .emit_by_name::<()>("prev-match",
                                         &[&ImtrEventObject::new()]);
@@ -80,7 +74,7 @@ impl ImtrButtonBox{
         let btn = self.imp().gen_btn.clone();
         let s   = self.clone();
         btn.connect_clicked(
-            clone!(@strong s => move|r|{
+            clone!(@strong s => move|_r|{
                 s.imp().mediator.borrow().as_ref().unwrap()
                     .emit_by_name::<()>("build-tournament",
                                         &[&ImtrEventObject::new()]);

@@ -1,8 +1,6 @@
 pub(crate) mod imp;
 
-use std::path::Path;
 use std::path::PathBuf;
-use std::rc::Rc;
 
 use glib::Object;
 use glib::subclass::types::ObjectSubclassIsExt;

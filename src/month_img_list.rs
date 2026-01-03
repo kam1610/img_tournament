@@ -1,7 +1,6 @@
 use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
-use std::time::SystemTime;
 use chrono::{DateTime, Datelike, Local};
 // list_files //////////////////////////////////////////////
 fn list_files(dir: &Path) -> std::io::Result<Vec<PathBuf>> {

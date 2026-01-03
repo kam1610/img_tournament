@@ -6,27 +6,18 @@ mod month_img_list;
 mod tree_util;
 mod scale_factor;
 
-use std::path::Path;
-use std::path::PathBuf;
-use std::rc::Rc;
-use std::cell::RefCell;
 
 use gtk::Application;
 use gtk::ApplicationWindow;
 use gtk::CssProvider;
 use gtk::gdk::Display;
-use gtk::Label;
 use gtk::Orientation;
-use gtk::DrawingArea;
 use gtk::glib::Object;
 use gtk::prelude::*;
 
 use crate::imtr_button_box::ImtrButtonBox;
 use crate::imtr_mediator::ImtrMediator;
-use crate::month_img_list::get_month_img_files;
 use crate::imtr_preview::ImtrPreview;
-use crate::tree_util::Node;
-use crate::imtr_event_object::ImtrEventObject; // debug
 
 // load_css ////////////////////////////////////////////////
 pub fn load_css() {

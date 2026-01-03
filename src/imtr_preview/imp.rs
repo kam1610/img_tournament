@@ -1,12 +1,10 @@
 use once_cell::sync::Lazy;
-use std::path::Path;
 use std::path::PathBuf;
 use std::cell::RefCell;
 use std::cell::Cell;
 
 use gtk::glib;
 use gtk::glib::Object;
-use gtk::DrawingArea;
 use gtk::gdk_pixbuf::Pixbuf;
 use gtk::subclass::prelude::*;
 use gtk::glib::subclass::Signal;

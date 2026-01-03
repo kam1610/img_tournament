@@ -9,7 +9,6 @@ use glib::ParamSpec;
 use glib::Properties;
 use glib::Value;
 
-use crate::tree_util::Decision;
 // ImtrEventObject /////////////////////////////////////////
 #[derive(Properties)]
 #[properties(wrapper_type = super::ImtrEventObject)]

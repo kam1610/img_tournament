@@ -8,7 +8,6 @@ use std::fs::OpenOptions;
 use gtk::prelude::*;
 use gtk::subclass::prelude::ObjectSubclassIsExt;
 use gtk::glib;
-use gtk::glib::object::Object;
 use gtk::glib::closure_local;
 use gtk::AlertDialog;
 use gtk::Window;
@@ -39,9 +38,6 @@ impl ImtrMediator{
                                     cr: &cairo::Context, img_px: i32, img_mgn: i32) -> i32{
         let ofx = depth * (img_px + img_mgn);
         let ofy = width * (img_px + img_mgn);
-
-        let p = if let Some(p) = &node.borrow().path { p }
-        else { &resolve_winner_leaf(node).unwrap() } ;
 
         let p    = resolve_winner_leaf(node).unwrap();
         let pbuf = Pixbuf::from_file(p).expect("(export_tournament_result_sub) load img file error");
@@ -101,7 +97,7 @@ impl ImtrMediator{
 
         Self::export_tournament_result_sub(&root, 0, 0, &cr, img_px, img_mgn);
 
-        let mut path_buf = PathBuf::from("./img_tournament_result.png");
+        let path_buf = PathBuf::from("./img_tournament_result.png");
         let mut out_file  = {
             if let Ok(f) = OpenOptions::new()
                 .read(false).write(true).create(true).open(&path_buf) { f }
@@ -116,7 +112,7 @@ impl ImtrMediator{
         obj.connect_closure(
             "directory-selected",
             false,
-            closure_local!(|s: Self, e: ImtrEventObject|{
+            closure_local!(|_s: Self, _e: ImtrEventObject|{
                 println!("(ImtrMediator) directory-selected");
             })
         );
@@ -124,7 +120,7 @@ impl ImtrMediator{
         obj.connect_closure(
             "build-tournament",
             false,
-            closure_local!(|s: Self, e: ImtrEventObject|{
+            closure_local!(|s: Self, _e: ImtrEventObject|{
                 let btn_box = s.imp().btn_box.borrow().clone()
                     .downcast::<ImtrButtonBox>().expect("ImtrButtonBox");
                 let lst = get_month_img_files(&btn_box.imp().dir.borrow(),
@@ -135,7 +131,7 @@ impl ImtrMediator{
                 if lst.len() < 2 {
                     let win = s.imp().win.borrow().clone()
                         .downcast::<Window>().expect("Window");
-                    let alert = AlertDialog::builder()
+                    AlertDialog::builder()
                         .modal(true)
                         .message("please choose directory contains at least 2 image files")
                         .build().show(Some(&win));
@@ -186,7 +182,7 @@ impl ImtrMediator{
         obj.connect_closure(
             "next-match",
             false,
-            closure_local!(|s: Self, e: ImtrEventObject|{
+            closure_local!(|s: Self, _e: ImtrEventObject|{
                 let pwin_temp = s.imp().pwin.borrow();
                 let pwin = pwin_temp.downcast_ref::<ImtrPreview>()
                     .expect("ImtrPreview is expected");
@@ -197,14 +193,14 @@ impl ImtrMediator{
                     .downcast::<Window>().expect("Window");
 
                 if dec == Decision::Undef {
-                    let alert = AlertDialog::builder()
+                    AlertDialog::builder()
                         .modal(true)
                         .message("please click one of the images")
                         .build().show(Some(&win));
                     return;
                 }
                 // update decision
-                &s.imp().match_list.borrow()[ix].borrow_mut().decision.set(dec);
+                s.imp().match_list.borrow()[ix].borrow_mut().decision.set(dec);
                 // obtain next match
                 if ix < (sz - 1){
                     let n_temp = s.imp().match_list.borrow();
@@ -268,13 +264,8 @@ impl ImtrMediator{
         obj.connect_closure(
             "prev-match",
             false,
-            closure_local!(|s: Self, e: ImtrEventObject|{
-                let pwin_temp = s.imp().pwin.borrow();
-                let pwin = pwin_temp.downcast_ref::<ImtrPreview>()
-                    .expect("ImtrPreview is expected");
+            closure_local!(|s: Self, _e: ImtrEventObject|{
                 let ix  = s.imp().match_num.get();
-                let win = s.imp().win.borrow().clone()
-                    .downcast::<Window>().expect("Window");
 
                 if 0 < ix{
                     let n_temp = s.imp().match_list.borrow();
